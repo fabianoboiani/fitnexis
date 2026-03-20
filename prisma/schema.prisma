@@ -1,0 +1,184 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  PERSONAL
+}
+
+enum StudentStatus {
+  ACTIVE
+  PAUSED
+  DELINQUENT
+  INACTIVE
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELED
+}
+
+enum PaymentMethod {
+  PIX
+  CASH
+  CARD
+  TRANSFER
+  OTHER
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELED
+  MISSED
+}
+
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  PAST_DUE
+  CANCELED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         UserRole
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  ownedTenant  Tenant?
+}
+
+model Tenant {
+  id               String            @id @default(cuid())
+  ownerUserId      String            @unique
+  businessName     String
+  personalName     String
+  phone            String?
+  email            String?
+  isActive         Boolean           @default(true)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  ownerUser        User              @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
+  students         Student[]
+  payments         Payment[]
+  appointments     Appointment[]
+  progressRecords  ProgressRecord[]
+  saasSubscription SaaSSubscription?
+
+  @@index([businessName])
+  @@index([isActive])
+}
+
+model Student {
+  id              String        @id @default(cuid())
+  tenantId        String
+  name            String
+  email           String?
+  phone           String?
+  birthDate       DateTime?
+  goal            String?
+  notes           String?
+  status          StudentStatus @default(ACTIVE)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  tenant          Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  payments        Payment[]
+  appointments    Appointment[]
+  progressRecords ProgressRecord[]
+
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([tenantId, name])
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  tenantId      String
+  studentId     String
+  amount        Decimal       @db.Decimal(10, 2)
+  dueDate       DateTime
+  paidAt        DateTime?
+  status        PaymentStatus @default(PENDING)
+  paymentMethod PaymentMethod?
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  student       Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([studentId])
+  @@index([tenantId, status])
+  @@index([tenantId, dueDate])
+}
+
+model Appointment {
+  id         String            @id @default(cuid())
+  tenantId   String
+  studentId  String
+  title      String
+  startsAt   DateTime
+  endsAt     DateTime
+  status     AppointmentStatus @default(SCHEDULED)
+  notes      String?
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  tenant     Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  student    Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([studentId])
+  @@index([tenantId, startsAt])
+  @@index([tenantId, status])
+}
+
+model ProgressRecord {
+  id         String   @id @default(cuid())
+  tenantId   String
+  studentId  String
+  recordedAt DateTime
+  weight     Decimal? @db.Decimal(5, 2)
+  bodyFat    Decimal? @db.Decimal(5, 2)
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([studentId])
+  @@index([tenantId, recordedAt])
+}
+
+model SaaSSubscription {
+  id                   String             @id @default(cuid())
+  tenantId             String             @unique
+  planName             String
+  status               SubscriptionStatus @default(TRIAL)
+  currentPeriodEnd     DateTime?
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  tenant               Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+}
