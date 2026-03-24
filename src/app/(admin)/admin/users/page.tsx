@@ -1,7 +1,7 @@
-﻿import Link from "next/link";
+import Link from "next/link";
+import { UserRole } from "@prisma/client";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { UserRole } from "@prisma/client";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,16 +44,16 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
   return (
     <main className="min-w-0 space-y-8 px-6 py-8">
       <PageHeader
-        title="Usu?rios"
-        description="Visualize e filtre usu?rios globais da plataforma com contexto de tenant."
+        title="Usuários"
+        description="Visualize e filtre usuários globais da plataforma com contexto de tenant."
       />
 
       <Card className="border-white/70 bg-white/90 shadow-sm">
         <CardHeader className="gap-4">
           <div className="space-y-1">
-            <CardTitle className="text-xl">Lista de usu?rios</CardTitle>
+            <CardTitle className="text-xl">Lista de usuários</CardTitle>
             <p className="text-sm text-slate-600">
-              Filtre por nome, e-mail e perfil para localizar rapidamente um usu?rio.
+              Filtre por nome, e-mail e perfil para localizar rapidamente um usuário.
             </p>
           </div>
           <form className="grid gap-3 lg:grid-cols-[1fr_1fr_0.8fr_auto]">
@@ -81,6 +81,7 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
               <option value="">Todos os perfis</option>
               <option value={UserRole.ADMIN}>{userRoleLabels.ADMIN}</option>
               <option value={UserRole.PERSONAL}>{userRoleLabels.PERSONAL}</option>
+              <option value={UserRole.STUDENT}>{userRoleLabels.STUDENT}</option>
             </select>
 
             <div className="flex gap-2">
@@ -96,11 +97,11 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
         <CardContent>
           {users.length === 0 ? (
             <EmptyState
-              title="Nenhum usu?rio encontrado"
+              title="Nenhum usuário encontrado"
               description={
                 name || email || role
-                  ? "Tente ajustar os filtros para localizar outros usu?rios."
-                  : "Quando novos usu?rios forem cadastrados, eles aparecerao aqui."
+                  ? "Tente ajustar os filtros para localizar outros usuários."
+                  : "Quando novos usuários forem cadastrados, eles aparecerão aqui."
               }
             />
           ) : (
@@ -113,7 +114,7 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
                     <th className="px-4 py-3 font-medium">Perfil</th>
                     <th className="px-4 py-3 font-medium">Criado em</th>
                     <th className="px-4 py-3 font-medium">Tenant vinculado</th>
-                    <th className="px-4 py-3 font-medium text-right">A??es</th>
+                    <th className="px-4 py-3 font-medium text-right">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -133,7 +134,7 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
                             <p className="font-medium text-slate-950">{user.tenantBusinessName}</p>
                           </div>
                         ) : (
-                          <span className="text-slate-500">N?o vinculado</span>
+                          <span className="text-slate-500">Não vinculado</span>
                         )}
                       </td>
                       <td className="px-4 py-4 text-right">

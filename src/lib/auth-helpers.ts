@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+﻿import { redirect } from "next/navigation";
 import type { UserRole } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { getDefaultRouteByRole } from "@/lib/app-routes";
@@ -41,6 +41,14 @@ export function isAdmin(role: UserRole) {
   return role === "ADMIN";
 }
 
+export function isStudent(role: UserRole) {
+  return role === "STUDENT";
+}
+
+export function isPersonal(role: UserRole) {
+  return role === "PERSONAL";
+}
+
 export function getDefaultAuthenticatedRoute(user: CurrentUser) {
   return getDefaultRouteByRole(user.role);
 }
@@ -49,7 +57,27 @@ export async function requireAdmin() {
   const user = await requireAuth();
 
   if (!isAdmin(user.role)) {
-    redirect("/dashboard");
+    redirect(getDefaultRouteByRole(user.role));
+  }
+
+  return user;
+}
+
+export async function requirePersonal() {
+  const user = await requireAuth();
+
+  if (!isPersonal(user.role)) {
+    redirect(getDefaultRouteByRole(user.role));
+  }
+
+  return user;
+}
+
+export async function requireStudent() {
+  const user = await requireAuth();
+
+  if (!isStudent(user.role)) {
+    redirect(getDefaultRouteByRole(user.role));
   }
 
   return user;

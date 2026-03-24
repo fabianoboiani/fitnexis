@@ -45,13 +45,13 @@ export default async function AdminTenantDetailsPage({
 
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <div className="space-y-6">
-          <Card className="border-white/70 bg-white/90 shadow-sm">
+          <Card className="border-white/70 bg-white/90 shadow-sm backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="text-xl">Resumo do tenant</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-5 md:grid-cols-2">
               <div className="space-y-1">
-                <p className="text-sm text-slate-500">Neg?cio</p>
+                <p className="text-sm text-slate-500">Negócio</p>
                 <p className="font-medium text-slate-950">{tenant.businessName}</p>
               </div>
               <div className="space-y-1">
@@ -60,18 +60,18 @@ export default async function AdminTenantDetailsPage({
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-slate-500">E-mail</p>
-                <p>{tenant.email ?? "N?o informado"}</p>
+                <p>{tenant.email ?? "Não informado"}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-slate-500">Telefone</p>
-                <p>{tenant.phone ?? "N?o informado"}</p>
+                <p>{tenant.phone ?? "Não informado"}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-slate-500">Criado em</p>
                 <p>{format(tenant.createdAt, "dd/MM/yyyy", { locale: ptBR })}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-sm text-slate-500">Situacao</p>
+                <p className="text-sm text-slate-500">Situação</p>
                 <Badge variant={tenant.isActive ? "default" : "outline"}>
                   {tenant.isActive ? "Ativo" : "Inativo"}
                 </Badge>
@@ -79,7 +79,7 @@ export default async function AdminTenantDetailsPage({
             </CardContent>
           </Card>
 
-          <Card className="border-white/70 bg-white/90 shadow-sm">
+          <Card className="border-white/70 bg-white/90 shadow-sm backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="text-xl">Owner user</CardTitle>
             </CardHeader>
@@ -104,27 +104,27 @@ export default async function AdminTenantDetailsPage({
           </Card>
 
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <Card className="border-white/70 bg-white/90 shadow-sm">
+            <Card className="border-white/70 bg-white/90 shadow-sm backdrop-blur-sm">
               <CardHeader>
                 <CardTitle className="text-base">Alunos</CardTitle>
               </CardHeader>
               <CardContent className="text-3xl font-bold">{tenant.counts.students}</CardContent>
             </Card>
-            <Card className="border-white/70 bg-white/90 shadow-sm">
+            <Card className="border-white/70 bg-white/90 shadow-sm backdrop-blur-sm">
               <CardHeader>
                 <CardTitle className="text-base">Pagamentos</CardTitle>
               </CardHeader>
               <CardContent className="text-3xl font-bold">{tenant.counts.payments}</CardContent>
             </Card>
-            <Card className="border-white/70 bg-white/90 shadow-sm">
+            <Card className="border-white/70 bg-white/90 shadow-sm backdrop-blur-sm">
               <CardHeader>
                 <CardTitle className="text-base">Compromissos</CardTitle>
               </CardHeader>
               <CardContent className="text-3xl font-bold">{tenant.counts.appointments}</CardContent>
             </Card>
-            <Card className="border-white/70 bg-white/90 shadow-sm">
+            <Card className="border-white/70 bg-white/90 shadow-sm backdrop-blur-sm">
               <CardHeader>
-                <CardTitle className="text-base">Evolucoes</CardTitle>
+                <CardTitle className="text-base">Evoluções</CardTitle>
               </CardHeader>
               <CardContent className="text-3xl font-bold">
                 {tenant.counts.progressRecords}
@@ -146,7 +146,7 @@ export default async function AdminTenantDetailsPage({
             onSubmitAction={boundSubscriptionAction}
           />
 
-          <Card className="border-white/70 bg-white/90 shadow-sm">
+          <Card className="border-white/70 bg-white/90 shadow-sm backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="text-xl">Assinatura atual</CardTitle>
             </CardHeader>
@@ -157,14 +157,14 @@ export default async function AdminTenantDetailsPage({
                 <SubscriptionStatusBadge status={tenant.subscription?.status ?? "TRIAL"} />
               </div>
               <p>
-                Fim do per?odo:{" "}
+                Fim do período:{" "}
                 {tenant.subscription?.currentPeriodEnd
                   ? format(tenant.subscription.currentPeriodEnd, "dd/MM/yyyy", { locale: ptBR })
-                  : "N?o informado"}
+                  : "Não informado"}
               </p>
-              <p>Stripe customer: {tenant.subscription?.stripeCustomerId ?? "N?o informado"}</p>
+              <p>Stripe customer: {tenant.subscription?.stripeCustomerId ?? "Não informado"}</p>
               <p>
-                Stripe subscription: {tenant.subscription?.stripeSubscriptionId ?? "N?o informado"}
+                Stripe subscription: {tenant.subscription?.stripeSubscriptionId ?? "Não informado"}
               </p>
             </CardContent>
           </Card>

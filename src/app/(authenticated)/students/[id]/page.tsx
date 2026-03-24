@@ -31,7 +31,7 @@ export default async function StudentDetailsPage({
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <PageHeader
           title={student.name}
-          description="Visualizacao detalhada do aluno no tenant atual."
+          description="Visualização detalhada do aluno no tenant atual."
         />
         <Button asChild>
           <Link href={`/students/${student.id}/edit`}>Editar aluno</Link>
@@ -45,7 +45,7 @@ export default async function StudentDetailsPage({
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-        <Card className="border-white/70 bg-white/90 shadow-sm">
+        <Card className="border-white/70 bg-white/90 shadow-sm backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="text-xl">Dados principais</CardTitle>
           </CardHeader>
@@ -60,18 +60,18 @@ export default async function StudentDetailsPage({
             </div>
             <div className="space-y-1">
               <p className="text-sm text-slate-500">E-mail</p>
-              <p>{student.email ?? "N?o informado"}</p>
+              <p>{student.email ?? "Não informado"}</p>
             </div>
             <div className="space-y-1">
               <p className="text-sm text-slate-500">Telefone</p>
-              <p>{student.phone ?? "N?o informado"}</p>
+              <p>{student.phone ?? "Não informado"}</p>
             </div>
             <div className="space-y-1">
               <p className="text-sm text-slate-500">Nascimento</p>
               <p>
                 {student.birthDate
                   ? format(student.birthDate, "dd/MM/yyyy", { locale: ptBR })
-                  : "N?o informado"}
+                  : "Não informado"}
               </p>
             </div>
             <div className="space-y-1">
@@ -80,31 +80,31 @@ export default async function StudentDetailsPage({
             </div>
             <div className="space-y-1 md:col-span-2">
               <p className="text-sm text-slate-500">Meta</p>
-              <p>{student.goal ?? "N?o informada"}</p>
+              <p>{student.goal ?? "Não informada"}</p>
             </div>
             <div className="space-y-1 md:col-span-2">
-              <p className="text-sm text-slate-500">Observa??es</p>
-              <p className="whitespace-pre-wrap">{student.notes ?? "Nenhuma observacao."}</p>
+              <p className="text-sm text-slate-500">Observações</p>
+              <p className="whitespace-pre-wrap">{student.notes ?? "Nenhuma observação."}</p>
             </div>
           </CardContent>
         </Card>
 
         <div className="space-y-6">
-          <Card className="border-white/70 bg-white/90 shadow-sm">
+          <Card className="border-white/70 bg-white/90 shadow-sm backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="text-xl">Pr?ximos atalhos</CardTitle>
+              <CardTitle className="text-xl">Próximos atalhos</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <Button asChild className="w-full" variant="outline">
                 <Link href={`/payments?studentId=${student.id}`}>Ver pagamentos do aluno</Link>
               </Button>
               <Button asChild className="w-full" variant="outline">
-                <Link href={`/students/${student.id}/progress`}>Ver evolu??o do aluno</Link>
+                <Link href={`/students/${student.id}/progress`}>Ver evolução do aluno</Link>
               </Button>
             </CardContent>
           </Card>
 
-          <Card className="border-white/70 bg-white/90 shadow-sm">
+          <Card className="border-white/70 bg-white/90 shadow-sm backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="text-xl">Resumo</CardTitle>
             </CardHeader>

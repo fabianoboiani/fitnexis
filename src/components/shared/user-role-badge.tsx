@@ -6,9 +6,10 @@ type UserRoleBadgeProps = {
   role: UserRole;
 };
 
-const variantMap: Record<UserRole, "default" | "secondary"> = {
+const variantMap: Record<UserRole, "default" | "secondary" | "outline"> = {
   ADMIN: "default",
-  PERSONAL: "secondary"
+  PERSONAL: "secondary",
+  STUDENT: "outline"
 };
 
 export function UserRoleBadge({ role }: UserRoleBadgeProps) {

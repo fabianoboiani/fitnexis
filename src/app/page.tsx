@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+﻿import { redirect } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -29,76 +29,76 @@ import { getCurrentUser, getDefaultAuthenticatedRoute } from "@/lib/auth-helpers
 import { BRAND_COPY, BRAND_NAME } from "@/lib/branding";
 
 const problems = [
-  "Agenda e atendimentos controlados em v?rios lugares ao mesmo tempo.",
-  "Informa??es de alunos espalhadas entre conversas, notas e planilhas.",
+  "Agenda e atendimentos controlados em vários lugares ao mesmo tempo.",
+  "Informações de alunos espalhadas entre conversas, notas e planilhas.",
   "Pouca visibilidade sobre pagamentos, compromissos e rotina operacional.",
   "Dificuldade para manter um atendimento organizado conforme a carteira cresce."
 ];
 
 const solutions = [
-  "Centraliza alunos, agenda, pagamentos e evolu??o em um unico ambiente.",
-  "Entrega uma vis?o clara do que precisa de aten??o no dia e na semana.",
-  "Ajuda o personal a operar com mais consist?ncia e postura profissional.",
+  "Centraliza alunos, agenda, pagamentos e evolução em um único ambiente.",
+  "Entrega uma visão clara do que precisa de atenção no dia e na semana.",
+  "Ajuda o personal a operar com mais consistência e postura profissional.",
   "Cria uma base organizada para crescer sem perder controle do atendimento."
 ];
 
 const features = [
   {
     icon: Users2,
-    eyebrow: "Gest?o de alunos",
-    title: "Cadastros organizados e faceis de acompanhar",
+    eyebrow: "Gestão de alunos",
+    title: "Cadastros organizados e fáceis de acompanhar",
     description:
-      "Mantenha a carteira de alunos centralizada, com status, observa??es e contexto do atendimento em um fluxo simples de consultar."
+      "Mantenha a carteira de alunos centralizada, com status, observações e contexto do atendimento em um fluxo simples de consultar."
   },
   {
     icon: CalendarDays,
     eyebrow: "Agenda operacional",
-    title: "Compromissos visiveis e rotina sob controle",
+    title: "Compromissos visíveis e rotina sob controle",
     description:
-      "Acompanhe sess?es, hor?rios e pr?ximos atendimentos com uma agenda pensada para a opera??o do personal trainer."
+      "Acompanhe sessões, horários e próximos atendimentos com uma agenda pensada para a operação do personal trainer."
   },
   {
     icon: LayoutDashboard,
     eyebrow: "Painel principal",
-    title: "Indicadores claros para tomar decisao rapido",
+    title: "Indicadores claros para tomar decisão mais rápido",
     description:
-      "Vej? alunos ativos, pagamentos pendentes, recebimentos e pr?ximos compromissos sem depender de conferencias manuais."
+      "Veja alunos ativos, pagamentos pendentes, recebimentos e próximos compromissos sem depender de conferências manuais."
   },
   {
     icon: UserRound,
-    eyebrow: "Experi?ncia do aluno",
+    eyebrow: "Experiência do aluno",
     title: "Base pronta para uma jornada mais conectada",
     description:
-      "Estruture uma experi?ncia mais profissional para o aluno com evolu??o, acompanhamento e relacionamento melhor organizados."
+      "Estruture uma experiência mais profissional para o aluno com evolução, acompanhamento e relacionamento melhor organizados."
   },
   {
     icon: ClipboardList,
-    eyebrow: "Hist?rico operacional",
+    eyebrow: "Histórico operacional",
     title: "Registros que ajudam a manter continuidade",
     description:
-      "Documente sess?es, observa??es e pontos importantes para acompanhar cada aluno com mais clareza ao longo do tempo."
+      "Documente sessões, observações e pontos importantes para acompanhar cada aluno com mais clareza ao longo do tempo."
   },
   {
     icon: LineChart,
-    eyebrow: "Vis?o de crescimento",
-    title: "Uma opera??o preparada para evoluir",
+    eyebrow: "Visão de crescimento",
+    title: "Uma operação preparada para evoluir",
     description:
-      "Use uma estrutura que atende a rotina atual e sustenta a expans?o para assessorias, studios e equipes."
+      "Use uma estrutura que atende a rotina atual e sustenta a expansão para assessorias, studios e equipes."
   }
 ];
 
 const audiences = [
   {
-    title: "Personais aut?nomos",
-    description: "Para quem quer operar com mais organiza??o, previsibilidade e padr?o profissional no dia a dia."
+    title: "Personais autônomos",
+    description: "Para quem quer operar com mais organização, previsibilidade e padrão profissional no dia a dia."
   },
   {
     title: "Assessorias esportivas",
-    description: "Ideal para opera??es que precisam acompanhar mais alunos, processos e rotina com clareza."
+    description: "Ideal para operações que precisam acompanhar mais alunos, processos e rotina com clareza."
   },
   {
     title: "Studios e pequenos times",
-    description: "Uma base adequada para organizar agenda, atendimentos e opera??o em estruturas menores."
+    description: "Uma base adequada para organizar agenda, atendimentos e operação em estruturas menores."
   },
   {
     title: "Profissionais em crescimento",
@@ -107,59 +107,83 @@ const audiences = [
 ];
 
 const benefits = [
-  { icon: Sparkles, title: "Rotina mais organizada", description: "Menos informa??o solta e mais visibilidade sobre o que precisa ser acompanhado." },
-  { icon: BellRing, title: "Mais efici?ncia no dia a dia", description: "Reduza retrabalho operacional e ganhe tempo para focar no atendimento." },
-  { icon: ShieldCheck, title: "Mais controle da opera??o", description: "Tenha vis?o sobre agenda, alunos, pagamentos e pontos de aten??o." },
-  { icon: Dumbbell, title: "Apresentacao mais profissional", description: "Sua estrutura passa a refletir a qualidade do servico que voce entrega." },
-  { icon: UserRound, title: "Melhor experi?ncia para o aluno", description: "Atendimentos mais organizados geram mais confian?a e continuidade." },
-  { icon: BarChart3, title: "Base para crescer com consist?ncia", description: "Expanda sua opera??o sem depender de controles improvisados." }
+  {
+    icon: Sparkles,
+    title: "Rotina mais organizada",
+    description: "Menos informação solta e mais visibilidade sobre o que precisa ser acompanhado."
+  },
+  {
+    icon: BellRing,
+    title: "Mais eficiência no dia a dia",
+    description: "Reduza retrabalho operacional e ganhe tempo para focar no atendimento."
+  },
+  {
+    icon: ShieldCheck,
+    title: "Mais controle da operação",
+    description: "Tenha visão sobre agenda, alunos, pagamentos e pontos de atenção."
+  },
+  {
+    icon: Dumbbell,
+    title: "Apresentação mais profissional",
+    description: "Sua estrutura passa a refletir a qualidade do serviço que você entrega."
+  },
+  {
+    icon: UserRound,
+    title: "Melhor experiência para o aluno",
+    description: "Atendimentos mais organizados geram mais confiança e continuidade."
+  },
+  {
+    icon: BarChart3,
+    title: "Base para crescer com consistência",
+    description: "Expanda sua operação sem depender de controles improvisados."
+  }
 ];
 
 const productCards = [
   {
-    title: "Painel com vis?o imediata da opera??o",
-    description: "Indicadores essenciais para acompanhar o neg?cio e agir com rapidez no que precisa de aten??o.",
+    title: "Painel com visão imediata da operação",
+    description: "Indicadores essenciais para acompanhar o negócio e agir com rapidez no que precisa de atenção.",
     icon: LayoutDashboard
   },
   {
     title: "Agenda desenhada para a rotina do personal",
-    description: "Compromissos e atendimentos organizados de forma objetiva, com leitura simples e pratica.",
+    description: "Compromissos e atendimentos organizados de forma objetiva, com leitura simples e prática.",
     icon: CalendarDays
   },
   {
     title: "Controle financeiro conectado ao atendimento",
-    description: "Pagamentos, vencimentos e situa??es financeiras em um fluxo f?cil de acompanhar.",
+    description: "Pagamentos, vencimentos e situações financeiras em um fluxo fácil de acompanhar.",
     icon: CreditCard
   },
   {
-    title: "Estrutura pronta para a area do aluno",
-    description: "Uma base que prepara o produto para evoluir a experi?ncia de acompanhamento e relacionamento.",
+    title: "Estrutura pronta para a área do aluno",
+    description: "Uma base que prepara o produto para evoluir a experiência de acompanhamento e relacionamento.",
     icon: MonitorSmartphone
   }
 ];
 
 const credibility = [
-  "Pensado para a rotina real de quem atende alunos e precisa manter a opera??o em ordem.",
-  "Construido com foco em clareza operacional, confiabilidade e uso pratico no dia a dia.",
-  "Desenhado para apoiar crescimento com mais processo, visibilidade e consist?ncia.",
-  "Preparado para evoluir sem exigir que a opera??o sej? reorganizada do zero no futuro."
+  "Pensado para a rotina real de quem atende alunos e precisa manter a operação em ordem.",
+  "Construído com foco em clareza operacional, confiabilidade e uso prático no dia a dia.",
+  "Desenhado para apoiar crescimento com mais processo, visibilidade e consistência.",
+  "Preparado para evoluir sem exigir que a operação seja reorganizada do zero no futuro."
 ];
 
 const faqs = [
   {
     question: "O Fitnexis atende apenas personal trainers?",
     answer:
-      "O foco inicial da plataforma e o personal trainer, mas a estrutura j? considera a expans?o para assessorias, studios e equipes."
+      "O foco inicial da plataforma é o personal trainer, mas a estrutura já considera a expansão para assessorias, studios e equipes."
   },
   {
-    question: "Consigo gerenciar v?rios alunos ao mesmo tempo?",
+    question: "Consigo gerenciar vários alunos ao mesmo tempo?",
     answer:
-      "Sim. O Fitnexis foi pensado para centralizar a carteira de alunos e f?cilitar o acompanhamento da rotina de atendimento."
+      "Sim. O Fitnexis foi pensado para centralizar a carteira de alunos e facilitar o acompanhamento da rotina de atendimento."
   },
   {
-    question: "O aluno tambem tera acesso a plataforma?",
+    question: "O aluno também terá acesso à plataforma?",
     answer:
-      "Sim. A evolu??o do produto considera uma area do aluno integrada ao restante da opera??o."
+      "Sim. A evolução do produto considera uma área do aluno integrada ao restante da operação."
   },
   {
     question: "Funciona bem no celular?",
@@ -167,14 +191,14 @@ const faqs = [
       "Sim. A interface foi projetada para funcionar de forma responsiva em celular, tablet e desktop."
   },
   {
-    question: "Vai existir suporte para opera??es com equipe?",
+    question: "Vai existir suporte para operações com equipe?",
     answer:
-      "Sim. A base do produto foi planej?da para suportar modelos mais estruturados em fases futuras."
+      "Sim. A base do produto foi planejada para suportar modelos mais estruturados em fases futuras."
   },
   {
-    question: `Como posso comecar a usar o ${BRAND_NAME}?`,
+    question: `Como posso começar a usar o ${BRAND_NAME}?`,
     answer:
-      "Voce pode criar sua conta diretamente pela plataforma ou falar com o time comercial para entender a melhor forma de uso para sua opera??o."
+      "Você pode criar sua conta diretamente pela plataforma ou falar com o time comercial para entender a melhor forma de uso para sua operação."
   }
 ];
 
@@ -239,7 +263,7 @@ export default async function HomePage() {
               <div className="grid gap-4 sm:grid-cols-3">
                 {[
                   "Mais controle da rotina",
-                  "Mais organiza??o no atendimento",
+                  "Mais organização no atendimento",
                   "Mais estrutura para crescer"
                 ].map((item) => (
                   <div
@@ -261,7 +285,7 @@ export default async function HomePage() {
             <SectionHeading
               eyebrow="Desafio operacional"
               title="Sem estrutura, a rotina fica mais pesada do que deveria."
-              description="Quando agenda, alunos e controles ficam espalhados, o personal perde tempo, reduz visibilidade da opera??o e dificulta a pr?pria expans?o."
+              description="Quando agenda, alunos e controles ficam espalhados, o personal perde tempo, reduz visibilidade da operação e dificulta a própria expansão."
             />
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -288,8 +312,8 @@ export default async function HomePage() {
           <div className="mx-auto max-w-7xl px-6">
             <SectionHeading
               eyebrow="Como o Fitnexis ajuda"
-              title="Uma plataforma para dar ordem a opera??o e mais seguranca ao crescimento."
-              description="O Fitnexis concentra o que o personal precisa acompanhar e transforma a rotina em um processo mais claro, profissional e f?cil de gerenciar."
+              title="Uma plataforma para dar ordem à operação e mais segurança ao crescimento."
+              description="O Fitnexis concentra o que o personal precisa acompanhar e transforma a rotina em um processo mais claro, profissional e fácil de gerenciar."
             />
 
             <div className="mt-12 grid gap-4 md:grid-cols-2">
@@ -311,8 +335,8 @@ export default async function HomePage() {
         <section id="recursos" className="mx-auto max-w-7xl px-6 py-24">
           <SectionHeading
             eyebrow="Funcionalidades principais"
-            title="Recursos pensados para a opera??o real do personal trainer."
-            description="Cada m?dulo foi planej?do para simplificar a rotina e melhorar a qualidade da gest?o no atendimento."
+            title="Recursos pensados para a operação real do personal trainer."
+            description="Cada módulo foi planejado para simplificar a rotina e melhorar a qualidade da gestão no atendimento."
             align="center"
           />
 
@@ -327,8 +351,8 @@ export default async function HomePage() {
           <div className="grid gap-14 lg:grid-cols-[0.85fr_1.15fr]">
             <SectionHeading
               eyebrow="Para quem foi feito"
-              title="Flexivel para a rotina atual e preparado para opera??es mais estruturadas."
-              description="O Fitnexis atende o profissional autonomo de hoje sem limitar a evolu??o do neg?cio no futuro."
+              title="Flexível para a rotina atual e preparado para operações mais estruturadas."
+              description="O Fitnexis atende o profissional autônomo de hoje sem limitar a evolução do negócio no futuro."
             />
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -349,9 +373,9 @@ export default async function HomePage() {
         <section className="border-y border-slate-200/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.7),rgba(239,246,255,0.8))] py-24">
           <div className="mx-auto max-w-7xl px-6">
             <SectionHeading
-              eyebrow="Beneficios"
-              title="Ganhos praticos para quem quer atender com mais estrutura."
-              description="O valor da plataforma aparece no controle da rotina, na apresentacao do neg?cio e na capacidade de crescer com mais consist?ncia."
+              eyebrow="Benefícios"
+              title="Ganhos práticos para quem quer atender com mais estrutura."
+              description="O valor da plataforma aparece no controle da rotina, na apresentação do negócio e na capacidade de crescer com mais consistência."
               align="center"
             />
 
@@ -375,9 +399,9 @@ export default async function HomePage() {
 
         <section id="produto" className="mx-auto max-w-7xl px-6 py-24">
           <SectionHeading
-            eyebrow="Vis?o do produto"
-            title="Uma interface criada para f?cilitar leitura, acao e acompanhamento."
-            description="Dashboard, agenda, alunos, pagamentos e evolu??o organizados em uma experi?ncia clara e objetiva."
+            eyebrow="Visão do produto"
+            title="Uma interface criada para facilitar leitura, ação e acompanhamento."
+            description="Dashboard, agenda, alunos, pagamentos e evolução organizados em uma experiência clara e objetiva."
           />
 
           <div className="mt-14 grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
@@ -402,9 +426,9 @@ export default async function HomePage() {
 
         <section className="mx-auto max-w-7xl px-6 py-24">
           <SectionHeading
-            eyebrow="Confian?a de produto"
+            eyebrow="Confiança de produto"
             title="Tecnologia aplicada a uma rotina que precisa de previsibilidade."
-            description="O Fitnexis foi desenhado para apoiar a opera??o com clareza, confiabilidade e espaco para evolu??o."
+            description="O Fitnexis foi desenhado para apoiar a operação com clareza, confiabilidade e espaço para evolução."
             align="center"
           />
 
@@ -425,13 +449,13 @@ export default async function HomePage() {
             <div className="grid gap-10 lg:grid-cols-[1fr_auto] lg:items-end">
               <div className="max-w-3xl space-y-5">
                 <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan-300">
-                  {`${BRAND_NAME} para sua opera??o`}
+                  {`${BRAND_NAME} para sua operação`}
                 </p>
                 <h2 className="text-3xl font-bold tracking-tight sm:text-5xl">
-                  Estruture sua opera??o com um software feito para a rotina do personal trainer.
+                  Estruture sua operação com um software feito para a rotina do personal trainer.
                 </h2>
                 <p className="text-lg leading-8 text-slate-300">
-                  Comece a usar o Fitnexis ou fale com nosso time para entender como a plataforma se adapta a sua rotina de atendimento.
+                  Comece a usar o Fitnexis ou fale com nosso time para entender como a plataforma se adapta à sua rotina de atendimento.
                 </p>
               </div>
 
@@ -460,7 +484,7 @@ export default async function HomePage() {
           <SectionHeading
             eyebrow="FAQ"
             title="Perguntas frequentes"
-            description="Informa??es objetivas para quem esta avaliando o Fitnexis."
+            description="Informações objetivas para quem está avaliando o Fitnexis."
           />
 
           <div className="mt-12 grid gap-4 lg:grid-cols-2">
@@ -495,7 +519,7 @@ export default async function HomePage() {
           </div>
 
           <div className="space-y-3 text-sm text-slate-600">
-            <p className="font-semibold uppercase tracking-[0.22em] text-slate-400">Navegacao</p>
+            <p className="font-semibold uppercase tracking-[0.22em] text-slate-400">Navegação</p>
             <div className="grid gap-2">
               <a href="#solucao" className="transition-colors hover:text-slate-950">Como funciona</a>
               <a href="#recursos" className="transition-colors hover:text-slate-950">Funcionalidades</a>

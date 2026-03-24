@@ -30,7 +30,7 @@ type AppointmentFormProps = {
 
 const statusOptions: Array<{ value: AppointmentStatus; label: string }> = [
   { value: AppointmentStatus.SCHEDULED, label: "Agendado" },
-  { value: AppointmentStatus.COMPLETED, label: "Concluido" },
+  { value: AppointmentStatus.COMPLETED, label: "Concluído" },
   { value: AppointmentStatus.CANCELED, label: "Cancelado" },
   { value: AppointmentStatus.MISSED, label: "Faltou" }
 ];
@@ -71,16 +71,16 @@ export function AppointmentForm({
           }
         }
 
-        setErrorMessage(result.message ?? "N?o foi poss?vel salvar o compromisso.");
+        setErrorMessage(result.message ?? "Não foi possível salvar o compromisso.");
       }
     });
   });
 
   return (
-    <Card className="border-white/70 bg-white/90 shadow-sm">
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        {description ? <p className="text-sm text-slate-500">{description}</p> : null}
+    <Card className="border-white/70 bg-white/90 shadow-sm backdrop-blur-sm">
+      <CardHeader className="space-y-2">
+        <CardTitle className="text-xl text-slate-950">{title}</CardTitle>
+        {description ? <p className="text-sm leading-6 text-slate-600">{description}</p> : null}
       </CardHeader>
       <CardContent>
         <form className="grid gap-5 md:grid-cols-2" onSubmit={onSubmit}>
@@ -88,7 +88,7 @@ export function AppointmentForm({
             <Label htmlFor="studentId">Aluno</Label>
             <select
               id="studentId"
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               {...form.register("studentId")}
             >
               <option value="">Selecione um aluno</option>
@@ -102,13 +102,13 @@ export function AppointmentForm({
           </div>
 
           <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="title">T?tulo</Label>
+            <Label htmlFor="title">Título</Label>
             <Input id="title" {...form.register("title")} />
             <p className="text-xs text-destructive">{form.formState.errors.title?.message}</p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="startsAt">Inicio</Label>
+            <Label htmlFor="startsAt">Início</Label>
             <Input id="startsAt" type="datetime-local" {...form.register("startsAt")} />
             <p className="text-xs text-destructive">{form.formState.errors.startsAt?.message}</p>
           </div>
@@ -123,7 +123,7 @@ export function AppointmentForm({
             <Label htmlFor="status">Status</Label>
             <select
               id="status"
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               {...form.register("status")}
             >
               {statusOptions.map((option) => (
@@ -136,7 +136,7 @@ export function AppointmentForm({
           </div>
 
           <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="notes">Observa??es</Label>
+            <Label htmlFor="notes">Observações</Label>
             <Textarea id="notes" {...form.register("notes")} />
             <p className="text-xs text-destructive">{form.formState.errors.notes?.message}</p>
           </div>

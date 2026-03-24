@@ -28,18 +28,18 @@ export default async function AdminUserDetailsPage({ params }: AdminUserDetailsP
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <PageHeader
           title={user.name}
-          description="Detalhes administrativos do usu?rio e do tenant associado."
+          description="Detalhes administrativos do usuário e do tenant associado."
         />
         <Button asChild variant="outline">
-          <Link href="/admin/users">Voltar para usu?rios</Link>
+          <Link href="/admin/users">Voltar para usuários</Link>
         </Button>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
         <div className="space-y-6">
-          <Card className="border-white/70 bg-white/90 shadow-sm">
+          <Card className="border-white/70 bg-white/90 shadow-sm backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="text-xl">Resumo do usu?rio</CardTitle>
+              <CardTitle className="text-xl">Resumo do usuário</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-5 md:grid-cols-2">
               <div className="space-y-1">
@@ -65,7 +65,7 @@ export default async function AdminUserDetailsPage({ params }: AdminUserDetailsP
             </CardContent>
           </Card>
 
-          <Card className="border-white/70 bg-white/90 shadow-sm">
+          <Card className="border-white/70 bg-white/90 shadow-sm backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="text-xl">Tenant associado</CardTitle>
             </CardHeader>
@@ -73,24 +73,24 @@ export default async function AdminUserDetailsPage({ params }: AdminUserDetailsP
               {user.tenant ? (
                 <>
                   <div className="space-y-1">
-                    <p className="text-slate-500">Neg?cio</p>
+                    <p className="text-slate-500">Negócio</p>
                     <p className="font-medium text-slate-950">{user.tenant.businessName}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-slate-500">Responsavel</p>
+                    <p className="text-slate-500">Responsável</p>
                     <p>{user.tenant.personalName}</p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-slate-500">Contato</p>
-                    <p>{user.tenant.email ?? "N?o informado"}</p>
-                    <p>{user.tenant.phone ?? "N?o informado"}</p>
+                    <p>{user.tenant.email ?? "Não informado"}</p>
+                    <p>{user.tenant.phone ?? "Não informado"}</p>
                   </div>
                   <Button asChild variant="outline">
                     <Link href={`/admin/tenants/${user.tenant.id}`}>Abrir conta</Link>
                   </Button>
                 </>
               ) : (
-                <p>Este usu?rio ainda n?o possui tenant operacional vinculado.</p>
+                <p>Este usuário ainda não possui tenant operacional vinculado.</p>
               )}
             </CardContent>
           </Card>
@@ -102,7 +102,7 @@ export default async function AdminUserDetailsPage({ params }: AdminUserDetailsP
             onSubmitAction={boundUpdateUserAction}
           />
 
-          <Card className="border-white/70 bg-white/90 shadow-sm">
+          <Card className="border-white/70 bg-white/90 shadow-sm backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="text-xl">Assinatura associada</CardTitle>
             </CardHeader>
@@ -115,16 +115,16 @@ export default async function AdminUserDetailsPage({ params }: AdminUserDetailsP
                     <SubscriptionStatusBadge status={user.subscription.status} />
                   </div>
                   <p>
-                    Fim do per?odo:{" "}
+                    Fim do período:{" "}
                     {user.subscription.currentPeriodEnd
                       ? format(user.subscription.currentPeriodEnd, "dd/MM/yyyy", {
                           locale: ptBR
                         })
-                      : "N?o informado"}
+                      : "Não informado"}
                   </p>
                 </>
               ) : (
-                <p>N?o ha assinatura associada a este usu?rio.</p>
+                <p>Não há assinatura associada a este usuário.</p>
               )}
             </CardContent>
           </Card>

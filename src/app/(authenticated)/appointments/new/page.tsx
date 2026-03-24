@@ -17,7 +17,7 @@ export default async function NewAppointmentPage() {
       />
       <AppointmentForm
         title="Cadastro de compromisso"
-        description="Informe o aluno, t?tulo, horario e observa??es do atendimento."
+        description="Informe o aluno, título, horário ? observações do atendimento."
         submitLabel="Cadastrar compromisso"
         initialValues={AppointmentService.getFormValues()}
         studentOptions={students.map((student) => ({

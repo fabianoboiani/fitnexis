@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useTransition } from "react";
 import { SubscriptionStatus } from "@prisma/client";
@@ -55,7 +55,7 @@ export function AdminSubscriptionForm({
 
       setMessage(
         result.message ??
-          (result.success ? "Assinatura atualizada com sucesso." : "Falha ao atualizar.")
+          (result.success ? "Assinatura atualizada com sucesso." : "Falhá ao atualizar.")
       );
     });
   });
@@ -88,7 +88,7 @@ export function AdminSubscriptionForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="currentPeriodEnd">Fim do per?odo atual</Label>
+            <Label htmlFor="currentPeriodEnd">Fim do período atual</Label>
             <Input id="currentPeriodEnd" type="date" {...form.register("currentPeriodEnd")} />
             <p className="text-xs text-destructive">
               {form.formState.errors.currentPeriodEnd?.message}
@@ -107,7 +107,7 @@ export function AdminSubscriptionForm({
 
           {message ? <p className="text-sm text-slate-600">{message}</p> : null}
 
-          <Button type="submit">{isPending ? "Salvando..." : "Salvar altera??es"}</Button>
+          <Button type="submit">{isPending ? "Salvando..." : "Salvar alterações"}</Button>
         </form>
       </CardContent>
     </Card>

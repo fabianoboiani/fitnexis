@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 export const RegisterSchema = z.object({
-  name: z.string().min(3, "Informe o nome do personal."),
-  businessName: z.string().min(2, "Informe o nome do neg?cio."),
+  name: z.string().min(3, "Inform? o nome do personal."),
+  businessName: z.string().min(2, "Inform? o nome do neg?cio."),
   phone: z
     .string()
     .trim()

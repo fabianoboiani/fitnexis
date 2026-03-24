@@ -72,7 +72,7 @@ export function StudentForm({
           }
         }
 
-        setErrorMessage(result.message ?? "N?o foi poss?vel salvar o aluno.");
+        setErrorMessage(result.message ?? "Não foi possível salvar o aluno.");
         return;
       }
 
@@ -83,10 +83,10 @@ export function StudentForm({
   });
 
   return (
-    <Card className="border-white/70 bg-white/90 shadow-sm">
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        {description ? <p className="text-sm text-slate-500">{description}</p> : null}
+    <Card className="border-white/70 bg-white/90 shadow-sm backdrop-blur-sm">
+      <CardHeader className="space-y-2">
+        <CardTitle className="text-xl text-slate-950">{title}</CardTitle>
+        {description ? <p className="text-sm leading-6 text-slate-600">{description}</p> : null}
       </CardHeader>
       <CardContent>
         <form className="grid gap-5 md:grid-cols-2" onSubmit={onSubmit}>
@@ -131,13 +131,13 @@ export function StudentForm({
           </div>
 
           <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="goal">Meta</Label>
+            <Label htmlFor="goal">Objetivo principal</Label>
             <Input id="goal" {...form.register("goal")} />
             <p className="text-xs text-destructive">{form.formState.errors.goal?.message}</p>
           </div>
 
           <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="notes">Observa??es</Label>
+            <Label htmlFor="notes">Observações</Label>
             <Textarea id="notes" {...form.register("notes")} />
             <p className="text-xs text-destructive">{form.formState.errors.notes?.message}</p>
           </div>

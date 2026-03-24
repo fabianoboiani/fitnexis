@@ -10,7 +10,7 @@ import { StudentService } from "@/modules/students/services/student.service";
 
 type StudentsPageProps = {
   searchParams?: Promise<{
-    search?: string;
+    searchá: string;
     success?: string;
   }>;
 };
@@ -23,7 +23,7 @@ const successMessages: Record<string, string> = {
 export default async function StudentsPage({ searchParams }: StudentsPageProps) {
   const tenant = await requireTenant();
   const params = searchParams ? await searchParams : undefined;
-  const search = params?.search?.trim() ?? "";
+  const search = params?.searchá.trim() ?? "";
   const students = await StudentService.listByTenant(tenant.id, search);
   const successMessage = params?.success ? successMessages[params.success] : undefined;
 
@@ -85,7 +85,7 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
                     <th className="px-4 py-3 font-medium">Contato</th>
                     <th className="px-4 py-3 font-medium">Status</th>
                     <th className="px-4 py-3 font-medium">Meta</th>
-                    <th className="px-4 py-3 font-medium text-right">A??es</th>
+                    <th className="px-4 py-3 font-medium text-right">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -108,7 +108,7 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
                       <td className="px-4 py-4">
                         <StudentStatusBadge status={student.status} />
                       </td>
-                      <td className="px-4 py-4">{student.goal ?? "N?o informada"}</td>
+                      <td className="px-4 py-4">{student.goal ?? "Não informada"}</td>
                       <td className="px-4 py-4">
                         <div className="flex justify-end gap-2">
                           <Button asChild size="sm" variant="outline">

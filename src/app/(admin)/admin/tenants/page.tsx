@@ -41,7 +41,7 @@ export default async function AdminTenantsPage({ searchParams }: AdminTenantsPag
           <div className="space-y-1">
             <CardTitle className="text-xl">Lista de tenants</CardTitle>
             <p className="text-sm text-slate-600">
-              Filtre por neg?cio, nome do personal ou e-mail para localizar clientes com mais precis?o.
+              Filtre por negócio, nome do personal ou e-mail para localizar clientes com mais precisão.
             </p>
           </div>
           <form className="grid gap-3 lg:grid-cols-[1fr_1fr_1fr_auto]" method="get">
@@ -50,7 +50,7 @@ export default async function AdminTenantsPage({ searchParams }: AdminTenantsPag
               <input
                 name="businessName"
                 defaultValue={businessName}
-                placeholder="Nome do neg?cio"
+                placeholder="Nome do negócio"
                 className="flex h-10 w-full rounded-md border border-input bg-background pl-9 pr-3 text-sm"
               />
             </div>
@@ -91,14 +91,14 @@ export default async function AdminTenantsPage({ searchParams }: AdminTenantsPag
               <table className="min-w-full divide-y divide-slate-200 text-sm">
                 <thead>
                   <tr className="text-left text-slate-500">
-                    <th className="px-4 py-3 font-medium">Neg?cio</th>
+                    <th className="px-4 py-3 font-medium">Negócio</th>
                     <th className="px-4 py-3 font-medium">Personal</th>
                     <th className="px-4 py-3 font-medium">Contato</th>
                     <th className="px-4 py-3 font-medium">Owner user</th>
                     <th className="px-4 py-3 font-medium">Criado em</th>
                     <th className="px-4 py-3 font-medium">Assinatura</th>
-                    <th className="px-4 py-3 font-medium">Situacao</th>
-                    <th className="px-4 py-3 font-medium text-right">A??es</th>
+                    <th className="px-4 py-3 font-medium">Situação</th>
+                    <th className="px-4 py-3 font-medium text-right">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">

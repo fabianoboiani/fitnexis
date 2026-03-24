@@ -11,22 +11,23 @@ type AdminNavItem = {
   href: Route;
   label: string;
   icon: LucideIcon;
+  hint: string;
 };
 
 const navItems: AdminNavItem[] = [
-  { href: "/admin", label: "Dashboard", icon: Gauge },
-  { href: "/admin/tenants", label: "Tenants", icon: Building2 },
-  { href: "/admin/users", label: "Usu?rios", icon: Users },
-  { href: "/admin/subscriptions", label: "Assinaturas", icon: CreditCard },
-  { href: "/admin/settings", label: "Configura??es", icon: Settings }
+  { href: "/admin", label: "Dashboard", icon: Gauge, hint: "Indicadores globais" },
+  { href: "/admin/tenants", label: "Tenants", icon: Building2, hint: "Clientes SaaS" },
+  { href: "/admin/users", label: "Usuários", icon: Users, hint: "Contas da plataforma" },
+  { href: "/admin/subscriptions", label: "Assinaturas", icon: CreditCard, hint: "Planos e status" },
+  { href: "/admin/settings", label: "Configurações", icon: Settings, hint: "Visão institucional" }
 ];
 
 export function AdminSidebarNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="space-y-1">
-      {navItems.map(({ href, label, icon: Icon }) => {
+    <nav className="space-y-2">
+      {navItems.map(({ href, label, icon: Icon, hint }) => {
         const isActive = pathname === href || (href !== "/admin" && pathname.startsWith(href));
 
         return (
@@ -34,14 +35,24 @@ export function AdminSidebarNav() {
             key={href}
             href={href}
             className={cn(
-              "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+              "group flex items-center gap-3 rounded-[1.35rem] border px-3.5 py-3 transition-all duration-200",
               isActive
-                ? "bg-slate-950 text-white shadow-sm"
-                : "text-slate-600 hover:bg-slate-100 hover:text-slate-950"
+                ? "border-slate-950 bg-slate-950 text-white shadow-[0_18px_50px_-30px_rgba(15,23,42,0.85)]"
+                : "border-transparent bg-white/55 text-slate-600 hover:border-slate-200 hover:bg-white hover:text-slate-950 hover:shadow-sm"
             )}
           >
-            <Icon className="size-4" />
-            <span>{label}</span>
+            <div
+              className={cn(
+                "flex size-10 items-center justify-center rounded-2xl transition-colors",
+                isActive ? "bg-white/10 text-white" : "bg-slate-100 text-slate-600 group-hover:bg-slate-100 group-hover:text-slate-950"
+              )}
+            >
+              <Icon className="size-4" />
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold">{label}</p>
+              <p className={cn("truncate text-xs", isActive ? "text-slate-300" : "text-slate-500")}>{hint}</p>
+            </div>
           </Link>
         );
       })}

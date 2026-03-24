@@ -1,4 +1,4 @@
-import type {
+﻿import type {
   AppointmentStatus,
   PaymentMethod,
   PaymentStatus,
@@ -9,7 +9,8 @@ import type {
 
 export const userRoleLabels: Record<UserRole, string> = {
   ADMIN: "Administrador",
-  PERSONAL: "Personal trainer"
+  PERSONAL: "Personal trainer",
+  STUDENT: "Aluno"
 };
 
 export const subscriptionStatusLabels: Record<SubscriptionStatus, string> = {
@@ -35,7 +36,7 @@ export const paymentStatusLabels: Record<PaymentStatus, string> = {
 
 export const appointmentStatusLabels: Record<AppointmentStatus, string> = {
   SCHEDULED: "Agendado",
-  COMPLETED: "Concluido",
+  COMPLETED: "Concluído",
   CANCELED: "Cancelado",
   MISSED: "Faltou"
 };
@@ -43,7 +44,7 @@ export const appointmentStatusLabels: Record<AppointmentStatus, string> = {
 export const paymentMethodLabels: Record<PaymentMethod, string> = {
   PIX: "Pix",
   CASH: "Dinheiro",
-  CARD: "Cartao",
-  TRANSFER: "Transferencia",
+  CARD: "Cartão",
+  TRANSFER: "Transferência",
   OTHER: "Outro"
 };

@@ -35,8 +35,8 @@ export default async function StudentProgressPage({
     <main className="space-y-8 px-6 py-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <PageHeader
-          title={`Evolu??o de ${student.name}`}
-          description="Hist?rico de evolu??o f?sica vinculado ao aluno e ao tenant atual."
+          title={`Evolução de ${student.name}`}
+          description="Histórico de evolução física vinculado ao aluno e ao tenant atual."
         />
         <Button asChild variant="outline">
           <Link href={`/students/${student.id}`}>Voltar para aluno</Link>
@@ -45,30 +45,30 @@ export default async function StudentProgressPage({
 
       {resolvedSearchParams?.success === "created" ? (
         <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-          Registro de evolu??o criado com sucesso.
+          Registro de evolução criado com sucesso.
         </div>
       ) : null}
 
       <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
         <ProgressForm
           title="Novo registro"
-          description="Adicione um novo registro de evolu??o para este aluno."
-          submitLabel="Salvar evolu??o"
+          description="Adicione um novo registro de evolução para este aluno."
+          submitLabel="Salvar evolução"
           cancelHref={`/students/${student.id}`}
           initialValues={ProgressService.getFormValues(student.id)}
           studentOptions={[{ id: student.id, name: student.name }]}
           onSubmitAction={boundCreateAction}
         />
 
-        <Card className="border-white/70 bg-white/90 shadow-sm">
+        <Card className="border-white/70 bg-white/90 shadow-sm backdrop-blur-sm">
           <CardHeader>
-            <CardTitle className="text-xl">Hist?rico</CardTitle>
+            <CardTitle className="text-xl">Histórico</CardTitle>
           </CardHeader>
           <CardContent>
             {records.length === 0 ? (
               <EmptyState
-                title="Nenhuma evolu??o registrada"
-                description="Os registros deste aluno aparecerao aqui conforme forem cadastrados."
+                title="Nenhuma evolução registrada"
+                description="Os registros deste aluno aparecerão aqui conforme forem cadastrados."
               />
             ) : (
               <div className="space-y-4">
@@ -82,14 +82,14 @@ export default async function StudentProgressPage({
                         {format(record.recordedAt, "dd/MM/yyyy", { locale: ptBR })}
                       </p>
                       <div className="flex flex-wrap gap-4 text-sm text-slate-600">
-                        <span>Peso: {record.weight ? `${record.weight} kg` : "N?o informado"}</span>
+                        <span>Peso: {record.weight ? `${record.weight} kg` : "Não informado"}</span>
                         <span>
-                          Gordura: {record.bodyFat ? `${record.bodyFat}%` : "N?o informada"}
+                          Gordura: {record.bodyFat ? `${record.bodyFat}%` : "Não informada"}
                         </span>
                       </div>
                     </div>
                     <p className="mt-3 text-sm text-slate-600">
-                      {record.notes ?? "Sem observa??es neste registro."}
+                      {record.notes ?? "Sem observações neste registro."}
                     </p>
                   </div>
                 ))}

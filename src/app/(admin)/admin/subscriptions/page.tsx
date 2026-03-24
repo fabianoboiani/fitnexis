@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { SubscriptionStatus } from "@prisma/client";
@@ -36,7 +36,7 @@ function parseSubscriptionStatus(status?: string) {
 
 function formatOptionalDate(date: Date | null) {
   if (!date) {
-    return "N?o informado";
+    return "Não informado";
   }
 
   return format(date, "dd/MM/yyyy", { locale: ptBR });
@@ -91,8 +91,8 @@ export default async function AdminSubscriptionsPage({
                 </div>
                 <div className="space-y-1">
                   <p className="text-slate-500">Contato</p>
-                  <p className="break-all">{selectedSubscription.tenantEmail ?? "N?o informado"}</p>
-                  <p className="break-all">{selectedSubscription.tenantPhone ?? "N?o informado"}</p>
+                  <p className="break-all">{selectedSubscription.tenantEmail ?? "Não informado"}</p>
+                  <p className="break-all">{selectedSubscription.tenantPhone ?? "Não informado"}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-slate-500">Status atual</p>
@@ -117,7 +117,7 @@ export default async function AdminSubscriptionsPage({
         ) : (
           <EmptyState
             title="Selecione uma assinatura"
-            description="Escolha uma assinatura na tabela para visualizar os detalhes e editar plano, status ou vencimento."
+            description="Escolhá uma assinatura na tabela para visualizar os detalhes e editar plano, status ou vencimento."
           />
         )}
 
@@ -126,7 +126,7 @@ export default async function AdminSubscriptionsPage({
             <div className="space-y-1">
               <CardTitle className="text-xl">Lista de assinaturas</CardTitle>
               <p className="text-sm text-slate-600">
-                Filtre por status, plano ou tenant para localizar uma assinatura espec?fica.
+                Filtre por status, plano ou tenant para localizar uma assinatura específica.
               </p>
             </div>
             <form className="grid gap-3 lg:grid-cols-[1.2fr_0.9fr_0.9fr_auto]">
@@ -193,12 +193,12 @@ export default async function AdminSubscriptionsPage({
                       <th className="px-4 py-3 font-medium">Tenant</th>
                       <th className="px-4 py-3 font-medium">Plano</th>
                       <th className="px-4 py-3 font-medium">Status</th>
-                      <th className="px-4 py-3 font-medium">Fim do per?odo</th>
+                      <th className="px-4 py-3 font-medium">Fim do período</th>
                       <th className="px-4 py-3 font-medium">Stripe customer</th>
                       <th className="px-4 py-3 font-medium">Stripe subscription</th>
                       <th className="px-4 py-3 font-medium">Criada em</th>
                       <th className="px-4 py-3 font-medium">Atualizada em</th>
-                      <th className="px-4 py-3 font-medium text-right">A??es</th>
+                      <th className="px-4 py-3 font-medium text-right">Ações</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -215,9 +215,9 @@ export default async function AdminSubscriptionsPage({
                           <SubscriptionStatusBadge status={subscription.status} />
                         </td>
                         <td className="px-4 py-4">{formatOptionalDate(subscription.currentPeriodEnd)}</td>
-                        <td className="px-4 py-4">{subscription.stripeCustomerId ?? "N?o informado"}</td>
+                        <td className="px-4 py-4">{subscription.stripeCustomerId ?? "Não informado"}</td>
                         <td className="px-4 py-4">
-                          {subscription.stripeSubscriptionId ?? "N?o informado"}
+                          {subscription.stripeSubscriptionId ?? "Não informado"}
                         </td>
                         <td className="px-4 py-4">
                           {format(subscription.createdAt, "dd/MM/yyyy", { locale: ptBR })}

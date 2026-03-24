@@ -24,12 +24,12 @@ export default async function EditAppointmentPage({ params }: EditAppointmentPag
     <main className="space-y-8 px-6 py-8">
       <PageHeader
         title="Editar compromisso"
-        description="Atualize os dados do compromisso mantendo o isolamento por tenant."
+        description="Atualiz? os dados do compromisso mantendo o isolamento por tenant."
       />
       <AppointmentForm
         title="Edicao de compromisso"
         description="Somente alunos do tenant autenticado podem ser vinculados a este compromisso."
-        submitLabel="Salvar altera??es"
+        submitLabel="Salvar alterações"
         initialValues={AppointmentService.getFormValues(appointment)}
         studentOptions={students.map((student) => ({
           id: student.id,

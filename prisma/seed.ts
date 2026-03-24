@@ -29,6 +29,21 @@ async function main() {
     }
   });
 
+
+  const studentUser = await prisma.user.upsert({
+    where: { email: "aluno@fitnexis.local" },
+    update: {
+      name: "Marina Costa",
+      passwordHash: defaultPasswordHash,
+      role: UserRole.STUDENT
+    },
+    create: {
+      name: "Marina Costa",
+      email: "aluno@fitnexis.local",
+      passwordHash: defaultPasswordHash,
+      role: UserRole.STUDENT
+    }
+  });
   const personal = await prisma.user.upsert({
     where: { email: "personal@fitnexis.local" },
     update: {
@@ -361,6 +376,7 @@ async function main() {
   console.info("Seed finalizado com sucesso.");
   console.info(`Admin: ${admin.email}`);
   console.info(`Personal: ${personal.email}`);
+  console.info(`Aluno: ${studentUser.email}`);
 }
 
 main()

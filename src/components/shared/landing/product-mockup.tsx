@@ -8,8 +8,8 @@ const students = [
 
 const appointments = [
   { time: "07:00", title: "Treino de inferiores", student: "Marina Costa" },
-  { time: "18:30", title: "Sessao funcional", student: "Lucas Andrade" },
-  { time: "09:00", title: "Avalia??o f?sica", student: "Camila Ribeiro" }
+  { time: "18:30", title: "Sessão funcional", student: "Lucas Andrade" },
+  { time: "09:00", title: "Avaliação física", student: "Camila Ribeiro" }
 ];
 
 const payments = [
@@ -47,10 +47,10 @@ export function ProductMockup() {
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-sm text-slate-400">Dashboard do personal</p>
-                  <h3 className="mt-1 text-xl font-semibold text-white">Vis?o da rotina de atendimento</h3>
+                  <h3 className="mt-1 text-xl font-semibold text-white">Visão da rotina de atendimento</h3>
                 </div>
                 <div className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs font-semibold text-cyan-300">
-                  Opera??o do dia
+                  Operação do dia
                 </div>
               </div>
 
@@ -64,7 +64,7 @@ export function ProductMockup() {
                   <p className="mt-2 text-2xl font-semibold text-white">4</p>
                 </div>
                 <div className="rounded-2xl bg-white/5 p-3">
-                  <p className="text-xs uppercase tracking-[0.16em] text-slate-500">Recebido no mes</p>
+                  <p className="text-xs uppercase tracking-[0.16em] text-slate-500">Recebido no mês</p>
                   <p className="mt-2 text-2xl font-semibold text-white">R$ 5,4k</p>
                 </div>
                 <div className="rounded-2xl bg-white/5 p-3">
@@ -127,7 +127,7 @@ export function ProductMockup() {
                 <div className="rounded-[1.25rem] border border-white/10 bg-white/5 p-4">
                   <div className="flex items-center gap-2 text-sm font-medium text-white">
                     <CalendarDays className="size-4 text-cyan-300" />
-                    <span>Pr?ximos atendimentos</span>
+                    <span>Próximos atendimentos</span>
                   </div>
                   <div className="mt-4 space-y-3">
                     {appointments.map((appointment) => (
@@ -148,7 +148,7 @@ export function ProductMockup() {
                 <div className="rounded-[1.25rem] border border-white/10 bg-white/5 p-4">
                   <div className="flex items-center gap-2 text-sm font-medium text-white">
                     <LineChart className="size-4 text-cyan-300" />
-                    <span>Evolu??o recente</span>
+                    <span>Evolução recente</span>
                   </div>
                   <div className="mt-4 space-y-3">
                     {progressItems.map((item) => (

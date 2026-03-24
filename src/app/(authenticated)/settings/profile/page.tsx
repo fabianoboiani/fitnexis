@@ -20,7 +20,7 @@ export default async function SettingsProfilePage({
   const params = searchParams ? await searchParams : undefined;
 
   if (!profile) {
-    throw new Error("Tenant profile n?o encontrado.");
+    throw new Error("Perfil do tenant não encontrado.");
   }
 
   return (
@@ -28,15 +28,15 @@ export default async function SettingsProfilePage({
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <PageHeader
           title="Perfil"
-          description="Edite os dados b?sicos do personal e do neg?cio."
+          description="Edite os dados principais do personal e do negócio em um fluxo simples e profissional."
         />
-        <Button asChild variant="outline">
-          <Link href="/settings">Voltar para configura??es</Link>
+        <Button asChild variant="outline" className="border-slate-200 bg-white">
+          <Link href="/settings">Voltar para configurações</Link>
         </Button>
       </div>
 
       {params?.success === "updated" ? (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+        <div className="rounded-[1.35rem] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
           Perfil atualizado com sucesso.
         </div>
       ) : null}

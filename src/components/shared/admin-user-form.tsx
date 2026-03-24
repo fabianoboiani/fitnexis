@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useTransition } from "react";
 import { UserRole } from "@prisma/client";
@@ -51,7 +51,7 @@ export function AdminUserForm({ initialValues, onSubmitAction }: AdminUserFormPr
       }
 
       setMessage(
-        result.message ?? (result.success ? "Usu?rio atualizado com sucesso." : "Falha ao atualizar.")
+        result.message ?? (result.success ? "Usuário atualizado com sucesso." : "Falhá ao atualizar.")
       );
     });
   });
@@ -59,7 +59,7 @@ export function AdminUserForm({ initialValues, onSubmitAction }: AdminUserFormPr
   return (
     <Card className="border-white/70 bg-white/90 shadow-sm">
       <CardHeader>
-        <CardTitle className="text-xl">Editar usu?rio</CardTitle>
+        <CardTitle className="text-xl">Editar usuário</CardTitle>
       </CardHeader>
       <CardContent>
         <form className="grid gap-5" onSubmit={onSubmit}>
@@ -78,6 +78,7 @@ export function AdminUserForm({ initialValues, onSubmitAction }: AdminUserFormPr
             >
               <option value={UserRole.ADMIN}>{userRoleLabels.ADMIN}</option>
               <option value={UserRole.PERSONAL}>{userRoleLabels.PERSONAL}</option>
+              <option value={UserRole.STUDENT}>{userRoleLabels.STUDENT}</option>
             </select>
             <p className="text-xs text-slate-500">
               Altere perfis com cautela. O sistema sempre precisa manter ao menos um administrador.
@@ -86,7 +87,7 @@ export function AdminUserForm({ initialValues, onSubmitAction }: AdminUserFormPr
 
           {message ? <p className="text-sm text-slate-600">{message}</p> : null}
 
-          <Button type="submit">{isPending ? "Salvando..." : "Salvar usu?rio"}</Button>
+          <Button type="submit">{isPending ? "Salvando..." : "Salvar usuário"}</Button>
         </form>
       </CardContent>
     </Card>

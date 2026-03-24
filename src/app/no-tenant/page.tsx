@@ -16,11 +16,11 @@ export default async function NoTenantPage() {
         <CardContent className="space-y-4 text-sm text-slate-600">
           <p>
             {user?.email
-              ? `A conta ${user.email} esta autenticada, mas ainda n?o possui um tenant operacional vinculado.`
+              ? `A conta ${user.email} est? autenticada, mas ainda n?o possui um tenant operacional vinculado.`
               : "Sua conta n?o possui um tenant operacional vinculado."}
           </p>
           <p>
-            Isso pode acontecer com usu?rios administrativos da plataforma enquanto a area de
+            Isso pode acontecer com usu?rios administrativos da plataforma enquanto a ?rea de
             administra??o ainda n?o foi implementada.
           </p>
           <div className="flex flex-wrap gap-3">

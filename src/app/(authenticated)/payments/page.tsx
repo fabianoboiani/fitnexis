@@ -122,7 +122,7 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
                     <th className="px-4 py-3 font-medium">Pagamento</th>
                     <th className="px-4 py-3 font-medium">Status</th>
                     <th className="px-4 py-3 font-medium">Forma</th>
-                    <th className="px-4 py-3 font-medium text-right">A??es</th>
+                    <th className="px-4 py-3 font-medium text-right">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -139,12 +139,12 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
                       <td className="px-4 py-4">
                         {payment.paidAt
                           ? format(payment.paidAt, "dd/MM/yyyy", { locale: ptBR })
-                          : "Ainda n?o pago"}
+                          : "Ainda não pago"}
                       </td>
                       <td className="px-4 py-4">
                         <PaymentStatusBadge status={payment.displayStatus} />
                       </td>
-                      <td className="px-4 py-4">{payment.paymentMethod ?? "N?o informado"}</td>
+                      <td className="px-4 py-4">{payment.paymentMethod ?? "Não informado"}</td>
                       <td className="px-4 py-4">
                         <div className="flex justify-end gap-2">
                           {payment.displayStatus !== PaymentStatus.PAID ? (

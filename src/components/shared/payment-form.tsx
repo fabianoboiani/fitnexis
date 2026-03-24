@@ -36,11 +36,11 @@ const statusOptions: Array<{ value: PaymentStatus; label: string }> = [
 ];
 
 const paymentMethodOptions: Array<{ value: PaymentMethod | ""; label: string }> = [
-  { value: "", label: "N?o informado" },
+  { value: "", label: "Não informado" },
   { value: PaymentMethod.PIX, label: "PIX" },
   { value: PaymentMethod.CASH, label: "Dinheiro" },
-  { value: PaymentMethod.CARD, label: "Cartao" },
-  { value: PaymentMethod.TRANSFER, label: "Transferencia" },
+  { value: PaymentMethod.CARD, label: "Cartão" },
+  { value: PaymentMethod.TRANSFER, label: "Transferência" },
   { value: PaymentMethod.OTHER, label: "Outro" }
 ];
 
@@ -82,16 +82,16 @@ export function PaymentForm({
           }
         }
 
-        setErrorMessage(result.message ?? "N?o foi poss?vel salvar o pagamento.");
+        setErrorMessage(result.message ?? "Não foi possível salvar o pagamento.");
       }
     });
   });
 
   return (
-    <Card className="border-white/70 bg-white/90 shadow-sm">
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        {description ? <p className="text-sm text-slate-500">{description}</p> : null}
+    <Card className="border-white/70 bg-white/90 shadow-sm backdrop-blur-sm">
+      <CardHeader className="space-y-2">
+        <CardTitle className="text-xl text-slate-950">{title}</CardTitle>
+        {description ? <p className="text-sm leading-6 text-slate-600">{description}</p> : null}
       </CardHeader>
       <CardContent>
         <form className="grid gap-5 md:grid-cols-2" onSubmit={onSubmit}>
@@ -153,9 +153,7 @@ export function PaymentForm({
                 </option>
               ))}
             </select>
-            <p className="text-xs text-destructive">
-              {form.formState.errors.paymentMethod?.message}
-            </p>
+            <p className="text-xs text-destructive">{form.formState.errors.paymentMethod?.message}</p>
           </div>
 
           <div className="space-y-2 md:col-span-2">
@@ -167,13 +165,13 @@ export function PaymentForm({
               {...form.register("paidAt")}
             />
             <p className="text-xs text-slate-500">
-              Se o status estiver como pago e a data ficar vazia, o sistema usara a data atual.
+              Se o status estiver como pago e a data ficar vazia, o sistema usará a data atual.
             </p>
             <p className="text-xs text-destructive">{form.formState.errors.paidAt?.message}</p>
           </div>
 
           <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="notes">Observa??es</Label>
+            <Label htmlFor="notes">Observações</Label>
             <Textarea id="notes" {...form.register("notes")} />
             <p className="text-xs text-destructive">{form.formState.errors.notes?.message}</p>
           </div>

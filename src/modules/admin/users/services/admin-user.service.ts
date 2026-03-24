@@ -90,7 +90,7 @@ export const AdminUserService = {
       currentUser.role === "ADMIN" &&
       parsed.role !== "ADMIN"
     ) {
-      throw new Error("Voce n?o pode remover seu pr?prio acesso administrativo.");
+      throw new Error("Voc? n?o pode remover seu pr?prio acesso administrativo.");
     }
 
     if (currentUser.role === "ADMIN" && parsed.role !== "ADMIN") {

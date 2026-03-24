@@ -26,8 +26,8 @@ export default async function ProgressPage({ searchParams }: ProgressPageProps) 
   return (
     <main className="space-y-8 px-6 py-8">
       <PageHeader
-        title="Evolu??o F?sica"
-        description="Acompanhe os registros recentes de evolu??o por aluno."
+        title="Evolução Física"
+        description="Acompanhe os registros recentes de evolução por aluno."
       />
 
       <Card className="border-white/70 bg-white/90 shadow-sm">
@@ -55,7 +55,7 @@ export default async function ProgressPage({ searchParams }: ProgressPageProps) 
           {records.length === 0 ? (
             <EmptyState
               title="Nenhum registro encontrado"
-              description="Cadastre evolucoes nos alunos para visualizar o hist?rico aqui."
+              description="Cadastre evolucoes nos alunos para visualizar o histórico aqui."
             />
           ) : (
             <div className="space-y-3">
@@ -71,9 +71,9 @@ export default async function ProgressPage({ searchParams }: ProgressPageProps) 
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-4 text-sm text-slate-600">
-                    <span>Peso: {record.weight ? `${record.weight} kg` : "N?o informado"}</span>
+                    <span>Peso: {record.weight ? `${record.weight} kg` : "Não informado"}</span>
                     <span>
-                      Gordura: {record.bodyFat ? `${record.bodyFat}%` : "N?o informada"}
+                      Gordura: {record.bodyFat ? `${record.bodyFat}%` : "Não informada"}
                     </span>
                   </div>
                   <Button asChild size="sm" variant="outline">

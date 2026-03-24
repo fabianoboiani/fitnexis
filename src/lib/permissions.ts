@@ -1,4 +1,4 @@
-import type { UserRole } from "@prisma/client";
+﻿import type { UserRole } from "@prisma/client";
 
 export const permissions = {
   canManageTenant(role: UserRole) {
@@ -6,5 +6,8 @@ export const permissions = {
   },
   canViewAdminArea(role: UserRole) {
     return role === "ADMIN";
+  },
+  canViewStudentArea(role: UserRole) {
+    return role === "STUDENT";
   }
 };

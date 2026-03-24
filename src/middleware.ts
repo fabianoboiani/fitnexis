@@ -1,4 +1,4 @@
-import NextAuth from "next-auth";
+﻿import NextAuth from "next-auth";
 import { NextResponse } from "next/server";
 import { authConfig } from "@/lib/auth.config";
 import {
@@ -6,8 +6,10 @@ import {
   getDefaultRouteByRole,
   isAdminRoute,
   isPersonalRoute,
+  isStudentRoute,
   personalRoutePrefixes,
-  publicRoutes
+  publicRoutes,
+  studentRoutePrefixes
 } from "@/lib/app-routes";
 
 const { auth } = NextAuth({
@@ -29,7 +31,13 @@ export default auth((request) => {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (isPersonalRoute(pathname) && user?.role === "ADMIN") {
+  if (studentRoutePrefixes.some((route) => pathname.startsWith(route)) && !request.auth) {
+    const loginUrl = new URL("/login", request.nextUrl.origin);
+    loginUrl.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  if (isPersonalRoute(pathname) && user && user.role !== "PERSONAL") {
     return NextResponse.redirect(new URL(getDefaultRouteByRole(user.role), request.nextUrl.origin));
   }
 
@@ -40,8 +48,9 @@ export default auth((request) => {
       return NextResponse.redirect(loginUrl);
     }
 
-    if (user?.role !== "ADMIN") {
-      return NextResponse.redirect(new URL("/dashboard", request.nextUrl.origin));
+    if (!user || user.role !== "ADMIN") {
+      const fallbackRole = user?.role ?? "PERSONAL";
+      return NextResponse.redirect(new URL(getDefaultRouteByRole(fallbackRole), request.nextUrl.origin));
     }
   }
 
@@ -53,8 +62,16 @@ export default auth((request) => {
     return NextResponse.redirect(new URL("/dashboard", request.nextUrl.origin));
   }
 
+  if (user && pathname === "/no-tenant" && user.role === "STUDENT") {
+    return NextResponse.redirect(new URL("/student", request.nextUrl.origin));
+  }
+
   if (user && isAdminRoute(pathname) && user.role !== "ADMIN") {
-    return NextResponse.redirect(new URL("/dashboard", request.nextUrl.origin));
+    return NextResponse.redirect(new URL(getDefaultRouteByRole(user.role), request.nextUrl.origin));
+  }
+
+  if (user && isStudentRoute(pathname) && user.role !== "STUDENT") {
+    return NextResponse.redirect(new URL(getDefaultRouteByRole(user.role), request.nextUrl.origin));
   }
 
   return NextResponse.next();

@@ -15,7 +15,7 @@ export default async function AdminDashboardPage() {
     <main className="min-w-0 space-y-8 px-6 py-8">
       <PageHeader
         title="Painel administrativo"
-        description="Vis?o global da opera??o da plataforma para administradores."
+        description="Visão global da operação da plataforma para administradores."
       />
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -51,7 +51,7 @@ export default async function AdminDashboardPage() {
           <DashboardStatCard
             title="Tenants em trial"
             value={String(data.totalTrialTenants)}
-            description="Tenants em per?odo de avalia??o."
+            description="Tenants em período de avaliação."
           />
         </div>
 
@@ -73,7 +73,7 @@ export default async function AdminDashboardPage() {
             <span>Personais</span>
           </div>
           <DashboardStatCard
-            title="Usu?rios personal trainer"
+            title="Usuários personal trainer"
             value={String(data.totalPersonalUsers)}
             description="Clientes operacionais da plataforma."
           />
@@ -85,9 +85,9 @@ export default async function AdminDashboardPage() {
             <span>Administradores</span>
           </div>
           <DashboardStatCard
-            title="Usu?rios administradores"
+            title="Usuários administradores"
             value={String(data.totalAdminUsers)}
-            description="Usu?rios globais da plataforma."
+            description="Usuários globais da plataforma."
           />
         </div>
       </section>
@@ -119,7 +119,7 @@ export default async function AdminDashboardPage() {
                     <div className="space-y-1">
                       <p className="font-medium text-slate-950">{tenant.businessName}</p>
                       <p className="text-sm text-slate-500">
-                        Responsavel: {tenant.personalName}
+                        Responsável: {tenant.personalName}
                       </p>
                       <p className="text-xs text-slate-500">{tenant.email ?? "Sem e-mail"}</p>
                     </div>
@@ -142,7 +142,7 @@ export default async function AdminDashboardPage() {
 
         <Card className="border-white/70 bg-white/90 shadow-sm">
           <CardHeader className="flex-row items-center justify-between">
-            <CardTitle className="text-xl">Assinaturas com aten??o</CardTitle>
+            <CardTitle className="text-xl">Assinaturas com atenção</CardTitle>
             <Link href="/admin/subscriptions" className="text-sm font-medium text-primary">
               Ver todas
             </Link>
@@ -151,10 +151,10 @@ export default async function AdminDashboardPage() {
             {data.subscriptionsExpiringSoon.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-10 text-center">
                 <p className="text-sm font-medium text-slate-900">
-                  Nenhuma assinatura com vencimento pr?ximo.
+                  Nenhuma assinatura com vencimento próximo.
                 </p>
                 <p className="mt-2 text-sm text-slate-500">
-                  Quando houver renova??es se aproximando, elas aparecerao aqui para acompanhamento.
+                  Quando houver renovações se aproximando, elas aparecerao aqui para acompanhamento.
                 </p>
               </div>
             ) : (

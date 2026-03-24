@@ -93,12 +93,12 @@ export default async function AppointmentsPage({ searchParams }: AppointmentsPag
               <table className="min-w-full divide-y divide-slate-200 text-sm">
                 <thead>
                   <tr className="text-left text-slate-500">
-                    <th className="px-4 py-3 font-medium">T?tulo</th>
+                    <th className="px-4 py-3 font-medium">Título</th>
                     <th className="px-4 py-3 font-medium">Aluno</th>
                     <th className="px-4 py-3 font-medium">Inicio</th>
                     <th className="px-4 py-3 font-medium">Fim</th>
                     <th className="px-4 py-3 font-medium">Status</th>
-                    <th className="px-4 py-3 font-medium text-right">A??es</th>
+                    <th className="px-4 py-3 font-medium text-right">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -108,7 +108,7 @@ export default async function AppointmentsPage({ searchParams }: AppointmentsPag
                         <div>
                           <p className="font-medium text-slate-950">{appointment.title}</p>
                           <p className="text-xs text-slate-500">
-                            {appointment.notes ?? "Sem observa??es"}
+                            {appointment.notes ?? "Sem observações"}
                           </p>
                         </div>
                       </td>

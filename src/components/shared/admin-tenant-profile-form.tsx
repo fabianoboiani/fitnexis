@@ -52,7 +52,7 @@ export function AdminTenantProfileForm({
           }
         }
 
-        setMessage(result.message ?? "N?o foi poss?vel atualizar o tenant.");
+        setMessage(result.message ?? "Não foi possível atualizar o tenant.");
         return;
       }
 
@@ -68,7 +68,7 @@ export function AdminTenantProfileForm({
       <CardContent>
         <form className="grid gap-5 md:grid-cols-2" onSubmit={onSubmit}>
           <div className="space-y-2">
-            <Label htmlFor="businessName">Nome do neg?cio</Label>
+            <Label htmlFor="businessName">Nome do negócio</Label>
             <Input id="businessName" {...form.register("businessName")} />
             <p className="text-xs text-destructive">
               {form.formState.errors.businessName?.message}
@@ -96,7 +96,7 @@ export function AdminTenantProfileForm({
           </div>
 
           <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="isActive">Situacao operacional</Label>
+            <Label htmlFor="isActive">Situação operacional</Label>
             <select
               id="isActive"
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"

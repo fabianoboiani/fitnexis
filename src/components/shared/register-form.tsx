@@ -63,7 +63,8 @@ export function RegisterForm() {
       const loginResult = await signIn("credentials", {
         email: values.email,
         password: values.password,
-        redirect: false
+        redirect: false,
+        callbackUrl: "/app"
       });
 
       if (!loginResult || loginResult.error) {
@@ -72,13 +73,21 @@ export function RegisterForm() {
         return;
       }
 
-      router.push("/dashboard");
+      router.replace("/app");
       router.refresh();
     });
   });
 
   return (
-    <Card className="w-full max-w-lg bg-white/90">
+    <Card className="relative w-full max-w-lg overflow-hidden bg-white/90">
+      {isPending ? (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80 backdrop-blur-sm">
+          <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-lg">
+            <div className="size-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <p className="text-sm font-medium text-slate-700">Configurando sua conta...</p>
+          </div>
+        </div>
+      ) : null}
       <CardHeader>
         <CardTitle>{BRAND_COPY.cta.primary}</CardTitle>
         <CardDescription>{BRAND_COPY.institutional.registerDescription}</CardDescription>
@@ -87,29 +96,29 @@ export function RegisterForm() {
         <form className="grid gap-4 sm:grid-cols-2" onSubmit={onSubmit}>
           <div className="space-y-2 sm:col-span-2">
             <Label htmlFor="name">Nome do personal</Label>
-            <Input id="name" {...form.register("name")} />
+            <Input disabled={isPending} id="name" {...form.register("name")} />
             <p className="text-xs text-destructive">{form.formState.errors.name?.message}</p>
           </div>
           <div className="space-y-2 sm:col-span-2">
-            <Label htmlFor="businessName">Nome do neg?cio</Label>
-            <Input id="businessName" {...form.register("businessName")} />
+            <Label htmlFor="businessName">Nome do negócio</Label>
+            <Input disabled={isPending} id="businessName" {...form.register("businessName")} />
             <p className="text-xs text-destructive">
               {form.formState.errors.businessName?.message}
             </p>
           </div>
           <div className="space-y-2 sm:col-span-2">
             <Label htmlFor="phone">Telefone</Label>
-            <Input id="phone" {...form.register("phone")} />
+            <Input disabled={isPending} id="phone" {...form.register("phone")} />
             <p className="text-xs text-destructive">{form.formState.errors.phone?.message}</p>
           </div>
           <div className="space-y-2 sm:col-span-2">
             <Label htmlFor="email">E-mail</Label>
-            <Input id="email" type="email" {...form.register("email")} />
+            <Input disabled={isPending} id="email" type="email" {...form.register("email")} />
             <p className="text-xs text-destructive">{form.formState.errors.email?.message}</p>
           </div>
           <div className="space-y-2 sm:col-span-2">
             <Label htmlFor="password">Senha</Label>
-            <Input id="password" type="password" {...form.register("password")} />
+            <Input disabled={isPending} id="password" type="password" {...form.register("password")} />
             <p className="text-xs text-destructive">{form.formState.errors.password?.message}</p>
           </div>
           {errorMessage ? <p className="text-sm text-destructive sm:col-span-2">{errorMessage}</p> : null}
@@ -117,7 +126,7 @@ export function RegisterForm() {
             <p className="text-sm text-emerald-700 sm:col-span-2">{successMessage}</p>
           ) : null}
           <div className="sm:col-span-2">
-            <Button className="w-full" type="submit">
+            <Button className="w-full" disabled={isPending} type="submit">
               {isPending ? "Criando conta..." : BRAND_COPY.cta.primary}
             </Button>
           </div>

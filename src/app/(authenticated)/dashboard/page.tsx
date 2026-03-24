@@ -22,7 +22,7 @@ export default async function DashboardPage() {
     <main className="space-y-8 px-6 py-8">
       <PageHeader
         title="Dashboard"
-        description={`Vis?o consolidada de ${tenant.businessName}.`}
+        description={`Visão cons?lidada de ${tenant.businessName}.`}
       />
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -53,7 +53,7 @@ export default async function DashboardPage() {
             description={
               data.pendingPaymentsCount > 0
                 ? "Pagamentos ainda aguardando recebimento."
-                : "N?o ha pagamentos pendentes no momento."
+                : "Não há pagamentos pendentes no momento."
             }
           />
         </div>
@@ -73,14 +73,14 @@ export default async function DashboardPage() {
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-sm text-slate-500">
             <CalendarClock className="size-4" />
-            <span>Pr?ximos atendimentos</span>
+            <span>Próximos atendimentos</span>
           </div>
           <DashboardStatCard
             title="Agenda futura"
             value={String(data.upcomingAppointments.length)}
             description={
               data.upcomingAppointments.length > 0
-                ? "Pr?ximos atendimentos agendados a partir de agora."
+                ? "Próximos atendimentos agendados a partir de agora."
                 : "Nenhum atendimento futuro encontrado."
             }
           />
@@ -90,7 +90,7 @@ export default async function DashboardPage() {
       <section className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
         <Card className="border-white/70 bg-white/90 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-xl">Pr?ximos atendimentos</CardTitle>
+            <CardTitle className="text-xl">Próximos atendimentos</CardTitle>
           </CardHeader>
           <CardContent>
             {data.upcomingAppointments.length === 0 ? (
@@ -125,7 +125,7 @@ export default async function DashboardPage() {
 
         <Card className="border-white/70 bg-white/90 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-xl">Resumo rapido</CardTitle>
+            <CardTitle className="text-xl">Resumo r?pido</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-slate-600">
             <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
@@ -135,7 +135,7 @@ export default async function DashboardPage() {
             <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
               <p className="font-medium text-slate-900">Leitura segura por tenant</p>
               <p className="mt-1">
-                Todas as metricas desta pagina foram consultadas com filtro explicito por
+                Todas as métricas dest? pagina foram consultadas com filtro explicito por
                 tenantId.
               </p>
             </div>

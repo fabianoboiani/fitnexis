@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useTransition } from "react";
 import { SubscriptionStatus } from "@prisma/client";
@@ -38,7 +38,7 @@ export function AdminSubscriptionStatusForm({
 
     startFormTransition(async () => {
       const result = await onSubmitAction(values);
-      setMessage(result.message ?? (result.success ? "Assinatura atualizada." : "Falha ao atualizar."));
+      setMessage(result.message ?? (result.success ? "Assinatura atualizada." : "Falhá ao atualizar."));
     });
   });
 

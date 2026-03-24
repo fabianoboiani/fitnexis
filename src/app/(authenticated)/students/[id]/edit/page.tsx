@@ -20,12 +20,12 @@ export default async function EditStudentPage({ params }: EditStudentPageProps) 
     <main className="space-y-8 px-6 py-8">
       <PageHeader
         title={`Editar ${student.name}`}
-        description="Atualize os dados do aluno sem perder o isolamento por tenant."
+        description="Atualiz? os dados do aluno sem perder o isolamento por tenant."
       />
       <StudentForm
         title="Edicao de aluno"
         description="Os dados abaixo pertencem apenas ao tenant autenticado."
-        submitLabel="Salvar altera??es"
+        submitLabel="Salvar alterações"
         initialValues={StudentService.getFormValues(student)}
         onSubmitAction={boundUpdateAction}
       />

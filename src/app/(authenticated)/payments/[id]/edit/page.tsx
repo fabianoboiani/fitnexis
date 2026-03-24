@@ -24,12 +24,12 @@ export default async function EditPaymentPage({ params }: EditPaymentPageProps) 
     <main className="space-y-8 px-6 py-8">
       <PageHeader
         title="Editar pagamento"
-        description="Atualize os dados do pagamento mantendo o isolamento por tenant."
+        description="Atualiz? os dados do pagamento mantendo o isolamento por tenant."
       />
       <PaymentForm
         title="Edicao de pagamento"
         description="Somente alunos do tenant autenticado podem ser vinculados a este pagamento."
-        submitLabel="Salvar altera??es"
+        submitLabel="Salvar alterações"
         initialValues={PaymentService.getFormValues(payment)}
         studentOptions={students.map((student) => ({
           id: student.id,
