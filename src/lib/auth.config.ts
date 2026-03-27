@@ -15,6 +15,7 @@ export const authConfig = {
         token.id = user.id;
         token.role = user.role;
         token.tenantId = user.tenantId;
+        token.studentId = user.studentId;
         token.email = user.email ?? token.email;
         token.name = user.name ?? token.name;
       }
@@ -26,6 +27,7 @@ export const authConfig = {
         session.user.id = token.id as string;
         session.user.role = token.role as UserRole;
         session.user.tenantId = (token.tenantId as string | null | undefined) ?? null;
+        session.user.studentId = (token.studentId as string | null | undefined) ?? null;
         session.user.email = token.email ?? session.user.email ?? "";
         session.user.name = token.name ?? session.user.name ?? "";
       }

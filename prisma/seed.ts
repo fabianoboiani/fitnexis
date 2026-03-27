@@ -172,6 +172,15 @@ async function main() {
       }
     });
 
+    if (studentData.id === "seed-student-fitnexis-01") {
+      await prisma.student.update({
+        where: { id: student.id },
+        data: {
+          userId: studentUser.id
+        }
+      });
+    }
+
     students.push(student);
   }
 

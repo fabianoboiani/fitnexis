@@ -11,6 +11,7 @@ export type AuthenticatedUser = {
   email: string;
   role: UserRole;
   tenantId: string | null;
+  studentId: string | null;
 };
 
 export class AuthError extends Error {
@@ -36,6 +37,12 @@ export const AuthService = {
           select: {
             id: true
           }
+        },
+        studentProfile: {
+          select: {
+            id: true,
+            tenantId: true
+          }
         }
       }
     });
@@ -54,7 +61,8 @@ export const AuthService = {
       name: user.name,
       email: user.email,
       role: user.role,
-      tenantId: user.ownedTenant?.id ?? null
+      tenantId: user.ownedTenant?.id ?? user.studentProfile?.tenantId ?? null,
+      studentId: user.studentProfile?.id ?? null
     };
   },
 
@@ -68,7 +76,7 @@ export const AuthService = {
     });
 
     if (existingUser) {
-      throw new AuthError("J? existe uma conta cadastrada com este e-mail.");
+      throw new AuthError("Já existe uma conta cadastrada com este e-mail.");
     }
 
     const passwordHash = await PasswordService.hash(parsed.password);

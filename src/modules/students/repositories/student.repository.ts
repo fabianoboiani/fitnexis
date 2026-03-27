@@ -30,6 +30,14 @@ export const StudentRepository = {
     });
   },
 
+  async findByUserId(userId: string) {
+    return prisma.student.findFirst({
+      where: {
+        userId
+      }
+    });
+  },
+
   async create(
     data: {
       tenantId: string;

@@ -1,4 +1,4 @@
-﻿import { redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import type { UserRole } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { getDefaultRouteByRole } from "@/lib/app-routes";
@@ -9,6 +9,7 @@ export type CurrentUser = {
   email: string;
   role: UserRole;
   tenantId: string | null;
+  studentId: string | null;
 };
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {
@@ -23,7 +24,8 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     name: session.user.name ?? "",
     email: session.user.email ?? "",
     role: session.user.role,
-    tenantId: session.user.tenantId ?? null
+    tenantId: session.user.tenantId ?? null,
+    studentId: session.user.studentId ?? null
   };
 }
 
