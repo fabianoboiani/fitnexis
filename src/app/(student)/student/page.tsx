@@ -5,6 +5,7 @@ import {
   CalendarDays,
   CheckCircle2,
   Clock3,
+  CreditCard,
   LineChart,
   MapPin,
   Sparkles
@@ -14,7 +15,7 @@ import { StudentDashboardSummaryCard } from "@/components/shared/student-dashboa
 import { StudentQuickActionCard } from "@/components/shared/student-quick-action-card";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { requireStudent } from "@/lib/auth-helpers";
+import { requireCurrentStudent } from "@/lib/student";
 import { StudentPortalService } from "@/modules/student/services/student-portal.service";
 
 function getSessionStatusVariant(status: string) {
@@ -30,9 +31,11 @@ function getNoticeTone(kind: "info" | "success" | "warning") {
 }
 
 export default async function StudentDashboardPage() {
-  const student = await requireStudent();
-  const data = StudentPortalService.getDashboardOverview();
+  const student = await requireCurrentStudent();
+  const data = await StudentPortalService.getDashboardOverview(student.id);
   const firstName = student.name.split(" ")[0];
+  const nextSession = data.nextSession;
+  const hasNextSession = nextSession !== null;
 
   return (
     <main className="min-w-0 space-y-8 px-6 py-8">
@@ -45,12 +48,18 @@ export default async function StudentDashboardPage() {
               <Badge variant="secondary" className="rounded-full border border-cyan-100 bg-cyan-50 text-cyan-900">
                 Próxima sessão
               </Badge>
-              <Badge variant={getSessionStatusVariant(data.nextSession.status)}>{data.nextSession.status}</Badge>
+              <Badge variant={hasNextSession ? getSessionStatusVariant(nextSession.status) : "outline"}>
+                {hasNextSession ? nextSession.status : "Sem agendamento"}
+              </Badge>
             </div>
             <div className="space-y-3">
-              <CardTitle className="text-3xl tracking-tight text-slate-950">{data.nextSession.title}</CardTitle>
+              <CardTitle className="text-3xl tracking-tight text-slate-950">
+                {hasNextSession ? nextSession.title : "Nenhuma sessão futura agendada"}
+              </CardTitle>
               <p className="max-w-2xl text-sm leading-7 text-slate-600">
-                Seu próximo compromisso já está organizado para facilitar sua rotina e manter o acompanhamento com mais clareza.
+                {hasNextSession
+                  ? "Seu próximo compromisso já está organizado para facilitar sua rotina e manter o acompanhamento com mais clareza."
+                  : "Assim que o personal registrar um novo atendimento, ele aparecerá aqui com todos os detalhes reais da sua agenda."}
               </p>
             </div>
           </CardHeader>
@@ -61,7 +70,9 @@ export default async function StudentDashboardPage() {
                 <span>Data</span>
               </div>
               <p className="mt-3 font-semibold text-slate-950">
-                {format(data.nextSession.startsAt, "dd 'de' MMMM", { locale: ptBR })}
+                {hasNextSession
+                  ? format(nextSession.startsAt, "dd 'de' MMMM", { locale: ptBR })
+                  : "Aguardando agendamento"}
               </p>
             </div>
             <div className="rounded-[1.5rem] border border-slate-200/80 bg-white/85 p-4 shadow-sm">
@@ -70,7 +81,9 @@ export default async function StudentDashboardPage() {
                 <span>Horário</span>
               </div>
               <p className="mt-3 font-semibold text-slate-950">
-                {format(data.nextSession.startsAt, "HH:mm", { locale: ptBR })} - {format(data.nextSession.endsAt, "HH:mm", { locale: ptBR })}
+                {hasNextSession
+                  ? `${format(nextSession.startsAt, "HH:mm", { locale: ptBR })} - ${format(nextSession.endsAt, "HH:mm", { locale: ptBR })}`
+                  : "Sem horário definido"}
               </p>
             </div>
             <div className="rounded-[1.5rem] border border-slate-200/80 bg-white/85 p-4 shadow-sm">
@@ -78,8 +91,10 @@ export default async function StudentDashboardPage() {
                 <MapPin className="size-4 text-primary" />
                 <span>Local ou formato</span>
               </div>
-              <p className="mt-3 font-semibold text-slate-950">{data.nextSession.location}</p>
-              <p className="mt-1 text-xs text-slate-500">{data.nextSession.format}</p>
+              <p className="mt-3 font-semibold text-slate-950">{hasNextSession ? nextSession.location : "A definir"}</p>
+              <p className="mt-1 text-xs text-slate-500">
+                {hasNextSession ? nextSession.format : "Seu personal ainda não registrou o próximo formato de treino."}
+              </p>
             </div>
             <div className="rounded-[1.5rem] border border-slate-200/80 bg-white/85 p-4 shadow-sm">
               <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
@@ -87,7 +102,9 @@ export default async function StudentDashboardPage() {
                 <span>Observações</span>
               </div>
               <p className="mt-3 text-sm leading-6 text-slate-700">
-                {data.nextSession.notes ?? "Sem observações adicionais para esta sessão."}
+                {hasNextSession
+                  ? nextSession.notes ?? "Sem observações adicionais para esta sessão."
+                  : "Use a agenda para acompanhar quando o próximo compromisso for lançado pelo seu personal."}
               </p>
             </div>
           </CardContent>
@@ -163,23 +180,27 @@ export default async function StudentDashboardPage() {
             <CardTitle className="text-xl tracking-tight">Sua agenda em destaque</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {data.upcomingAppointments.map((appointment) => (
-              <div key={appointment.id} className="rounded-[1.35rem] border border-slate-200/80 bg-slate-50/70 px-4 py-4">
-                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-medium text-slate-950">{appointment.title}</p>
-                      <Badge variant={getSessionStatusVariant(appointment.status)}>{appointment.status}</Badge>
+            {data.upcomingAppointments.length === 0 ? (
+              <p className="text-sm text-slate-600">Nenhum compromisso futuro registrado no momento.</p>
+            ) : (
+              data.upcomingAppointments.map((appointment) => (
+                <div key={appointment.id} className="rounded-[1.35rem] border border-slate-200/80 bg-slate-50/70 px-4 py-4">
+                  <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="font-medium text-slate-950">{appointment.title}</p>
+                        <Badge variant={getSessionStatusVariant(appointment.status)}>{appointment.status}</Badge>
+                      </div>
+                      <p className="mt-2 text-sm text-slate-600">{appointment.coach}</p>
+                      <p className="mt-1 text-sm text-slate-500">{appointment.location}</p>
                     </div>
-                    <p className="mt-2 text-sm text-slate-600">{appointment.coach}</p>
-                    <p className="mt-1 text-sm text-slate-500">{appointment.location}</p>
-                  </div>
-                  <div className="text-sm text-slate-600">
-                    {format(appointment.startsAt, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                    <div className="text-sm text-slate-600">
+                      {format(appointment.startsAt, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </CardContent>
         </Card>
 
@@ -188,7 +209,7 @@ export default async function StudentDashboardPage() {
             <div className="flex size-10 items-center justify-center rounded-2xl bg-cyan-50 text-cyan-700">
               <LineChart className="size-5" />
             </div>
-            <CardTitle className="text-xl tracking-tight">Leitura rápida da sua evolução</CardTitle>
+            <CardTitle className="text-xl tracking-tight">Financeiro e evolução</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="rounded-[1.35rem] border border-slate-200/80 bg-slate-50/70 px-4 py-4">
@@ -203,6 +224,20 @@ export default async function StudentDashboardPage() {
               <p className="mt-2 text-lg font-semibold text-slate-950">{data.lastUpdateLabel}</p>
               <p className="mt-2 text-sm text-slate-600">
                 Seu personal registrou atualizações recentes para manter sua evolução acompanhada de forma clara.
+              </p>
+            </div>
+            <div className="rounded-[1.35rem] border border-slate-200/80 bg-slate-50/70 px-4 py-4">
+              <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
+                <CreditCard className="size-4 text-primary" />
+                <span>Situação financeira</span>
+              </div>
+              <p className="mt-2 text-lg font-semibold text-slate-950">
+                {data.paymentSummary.pendingCount} pagamento(s) pendente(s)
+              </p>
+              <p className="mt-2 text-sm text-slate-600">
+                {data.paymentSummary.latestPaymentDueDate
+                  ? `Último vencimento registrado em ${format(data.paymentSummary.latestPaymentDueDate, "dd/MM/yyyy", { locale: ptBR })}.`
+                  : "Nenhum pagamento registrado até o momento."}
               </p>
             </div>
           </CardContent>

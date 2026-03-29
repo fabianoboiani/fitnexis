@@ -42,11 +42,48 @@ enum AppointmentStatus {
   MISSED
 }
 
+enum StudentAppointmentResponseStatus {
+  PENDING
+  CONFIRMED
+  RESCHEDULE_REQUESTED
+  CANCELED
+}
+
 enum SubscriptionStatus {
   TRIAL
   ACTIVE
   PAST_DUE
   CANCELED
+}
+
+enum StudentNoticeKind {
+  INFO
+  SUCCESS
+  WARNING
+}
+
+enum StudentNoticePriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum StudentNoticeCategory {
+  SESSION_REMINDER
+  SCHEDULE_CHANGE
+  PENDING_REQUEST
+  CONFIRMATION_REQUIRED
+  PAYMENT_ALERT
+  PROGRESS_UPDATE
+  SYSTEM
+}
+
+enum StudentNoticeEntityType {
+  APPOINTMENT
+  PAYMENT
+  PROGRESS_RECORD
+  STUDENT
+  SYSTEM
 }
 
 model User {
@@ -75,6 +112,7 @@ model Tenant {
 
   ownerUser        User              @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
   students         Student[]
+  studentNotices   StudentNotice[]
   payments         Payment[]
   appointments     Appointment[]
   progressRecords  ProgressRecord[]
@@ -85,21 +123,23 @@ model Tenant {
 }
 
 model Student {
-  id              String        @id @default(cuid())
-  tenantId        String
-  userId          String?       @unique
-  name            String
-  email           String?
-  phone           String?
-  birthDate       DateTime?
-  goal            String?
-  notes           String?
-  status          StudentStatus @default(ACTIVE)
+  id                  String        @id @default(cuid())
+  tenantId            String
+  userId              String?       @unique
+  portalAccessEnabled Boolean       @default(false)
+  name                String
+  email               String?
+  phone               String?
+  birthDate           DateTime?
+  goal                String?
+  notes               String?
+  status              StudentStatus @default(ACTIVE)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
   tenant          Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   user            User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  notices         StudentNotice[]
   payments        Payment[]
   appointments    Appointment[]
   progressRecords ProgressRecord[]
@@ -108,6 +148,33 @@ model Student {
   @@index([userId])
   @@index([tenantId, status])
   @@index([tenantId, name])
+}
+
+model StudentNotice {
+  id                String                  @id @default(cuid())
+  externalKey       String                  @unique
+  tenantId          String
+  studentId         String
+  kind              StudentNoticeKind
+  category          StudentNoticeCategory
+  title             String
+  description       String
+  details           String
+  priority          StudentNoticePriority
+  isRead            Boolean                 @default(false)
+  readAt            DateTime?
+  relatedEntityType StudentNoticeEntityType?
+  relatedEntityId   String?
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+
+  tenant            Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  student           Student                 @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, studentId])
+  @@index([studentId, isRead])
+  @@index([studentId, priority])
+  @@index([studentId, createdAt])
 }
 
 model Payment {
@@ -133,24 +200,28 @@ model Payment {
 }
 
 model Appointment {
-  id         String            @id @default(cuid())
-  tenantId   String
-  studentId  String
-  title      String
-  startsAt   DateTime
-  endsAt     DateTime
-  status     AppointmentStatus @default(SCHEDULED)
-  notes      String?
-  createdAt  DateTime          @default(now())
-  updatedAt  DateTime          @updatedAt
+  id                    String                           @id @default(cuid())
+  tenantId              String
+  studentId             String
+  title                 String
+  startsAt              DateTime
+  endsAt                DateTime
+  status                AppointmentStatus                @default(SCHEDULED)
+  studentResponseStatus StudentAppointmentResponseStatus @default(PENDING)
+  studentRespondedAt    DateTime?
+  studentResponseNote   String?
+  notes                 String?
+  createdAt             DateTime                         @default(now())
+  updatedAt             DateTime                         @updatedAt
 
-  tenant     Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  student    Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  tenant                Tenant                           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  student               Student                          @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@index([tenantId])
   @@index([studentId])
   @@index([tenantId, startsAt])
   @@index([tenantId, status])
+  @@index([tenantId, studentResponseStatus])
 }
 
 model ProgressRecord {

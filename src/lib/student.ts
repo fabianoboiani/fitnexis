@@ -2,26 +2,39 @@ import { redirect } from "next/navigation";
 import { requireStudent } from "@/lib/auth-helpers";
 import { StudentRepository } from "@/modules/students/repositories/student.repository";
 
-export async function getCurrentStudentProfile() {
+export async function getCurrentStudent() {
   const user = await requireStudent();
 
-  if (user.studentId && user.tenantId) {
-    const student = await StudentRepository.findByIdAndTenant(user.studentId, user.tenantId);
+  let student = null;
 
-    if (student) {
-      return student;
+  if (user.studentId && user.tenantId) {
+    student = await StudentRepository.findByIdAndTenant(user.studentId, user.tenantId);
+  }
+
+  if (!student) {
+    const studentByUser = await StudentRepository.findByUserId(user.id);
+
+    if (studentByUser && (!user.tenantId || studentByUser.tenantId === user.tenantId)) {
+      student = studentByUser;
     }
   }
 
-  return StudentRepository.findByUserId(user.id);
-}
-
-export async function requireCurrentStudentProfile() {
-  const student = await getCurrentStudentProfile();
-
-  if (!student) {
-    redirect("/student");
+  if (!student || !student.portalAccessEnabled) {
+    return null;
   }
 
   return student;
 }
+
+export async function requireCurrentStudent() {
+  const student = await getCurrentStudent();
+
+  if (!student) {
+    redirect("/no-tenant");
+  }
+
+  return student;
+}
+
+export const getCurrentStudentProfile = getCurrentStudent;
+export const requireCurrentStudentProfile = requireCurrentStudent;

@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Plus } from "lucide-react";
@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { AppointmentStatusBadge } from "@/components/shared/appointment-status-badge";
 import { PageHeader } from "@/components/shared/page-header";
+import { StudentAppointmentResponseBadge } from "@/components/shared/student-appointment-response-badge";
 import { requireTenant } from "@/lib/tenant";
 import { cancelAppointmentAction } from "@/modules/appointments/actions/appointment.action";
 import { AppointmentService } from "@/modules/appointments/services/appointment.service";
@@ -28,7 +29,7 @@ const successMessages: Record<string, string> = {
 const statusFilterOptions: Array<{ value: string; label: string }> = [
   { value: "", label: "Todos os status" },
   { value: AppointmentStatus.SCHEDULED, label: "Agendado" },
-  { value: AppointmentStatus.COMPLETED, label: "Concluido" },
+  { value: AppointmentStatus.COMPLETED, label: "Concluído" },
   { value: AppointmentStatus.CANCELED, label: "Cancelado" },
   { value: AppointmentStatus.MISSED, label: "Faltou" }
 ];
@@ -95,9 +96,10 @@ export default async function AppointmentsPage({ searchParams }: AppointmentsPag
                   <tr className="text-left text-slate-500">
                     <th className="px-4 py-3 font-medium">Título</th>
                     <th className="px-4 py-3 font-medium">Aluno</th>
-                    <th className="px-4 py-3 font-medium">Inicio</th>
+                    <th className="px-4 py-3 font-medium">Início</th>
                     <th className="px-4 py-3 font-medium">Fim</th>
                     <th className="px-4 py-3 font-medium">Status</th>
+                    <th className="px-4 py-3 font-medium">Resposta do aluno</th>
                     <th className="px-4 py-3 font-medium text-right">Ações</th>
                   </tr>
                 </thead>
@@ -121,6 +123,19 @@ export default async function AppointmentsPage({ searchParams }: AppointmentsPag
                       </td>
                       <td className="px-4 py-4">
                         <AppointmentStatusBadge status={appointment.status} />
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="space-y-2">
+                          <StudentAppointmentResponseBadge status={appointment.studentResponseStatus} />
+                          {appointment.studentRespondedAt ? (
+                            <p className="text-xs text-slate-500">
+                              Atualizado em {format(appointment.studentRespondedAt, "dd/MM HH:mm", { locale: ptBR })}
+                            </p>
+                          ) : null}
+                          {appointment.studentResponseNote ? (
+                            <p className="max-w-[220px] text-xs text-slate-500">{appointment.studentResponseNote}</p>
+                          ) : null}
+                        </div>
                       </td>
                       <td className="px-4 py-4">
                         <div className="flex justify-end gap-2">

@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { UserRole } from "@prisma/client";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -125,9 +125,7 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
                       <td className="px-4 py-4">
                         <UserRoleBadge role={user.role} />
                       </td>
-                      <td className="px-4 py-4">
-                        {format(user.createdAt, "dd/MM/yyyy", { locale: ptBR })}
-                      </td>
+                      <td className="px-4 py-4">{format(user.createdAt, "dd/MM/yyyy", { locale: ptBR })}</td>
                       <td className="px-4 py-4">
                         {user.tenantBusinessName ? (
                           <div>

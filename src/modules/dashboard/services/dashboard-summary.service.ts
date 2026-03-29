@@ -1,4 +1,4 @@
-import { endOfMonth, format, startOfMonth } from "date-fns";
+﻿import { endOfMonth, format, startOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { AppointmentStatus, PaymentStatus, StudentStatus } from "@prisma/client";
 import { prisma } from "@/lib/db";
@@ -90,7 +90,7 @@ export const DashboardSummaryService = {
         studentName: appointment.student.name,
         startsAt: appointment.startsAt,
         endsAt: appointment.endsAt,
-        startsAtLabel: format(appointment.startsAt, "dd 'de' MMMM 'as' HH:mm", {
+        startsAtLabel: format(appointment.startsAt, "dd 'de' MMMM 'às' HH:mm", {
           locale: ptBR
         })
       }))

@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+﻿import type { ReactNode } from "react";
 import Link from "next/link";
 import { Dumbbell, Sparkles } from "lucide-react";
 import { LogoutButton } from "@/components/shared/logout-button";

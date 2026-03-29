@@ -1,21 +1,14 @@
-import { notFound } from "next/navigation";
-import type {
-  AdminUserDetailsDto,
-  AdminUserFormValuesDto,
-  AdminUserListItemDto
-} from "@/modules/admin/users/dto/admin-user.dto";
+﻿import { notFound } from "next/navigation";
+import { UserRole } from "@prisma/client";
+import type { UpdateAdminUserInput } from "@/modules/admin/users/schemas/admin-user.schema";
 import { AdminUserRepository } from "@/modules/admin/users/repositories/admin-user.repository";
-import {
-  UpdateAdminUserSchema,
-  type UpdateAdminUserInput
-} from "@/modules/admin/users/schemas/admin-user.schema";
 
 export const AdminUserService = {
   async list(filters?: {
     name?: string;
     email?: string;
     role?: UpdateAdminUserInput["role"];
-  }): Promise<AdminUserListItemDto[]> {
+  }) {
     const users = await AdminUserRepository.findMany(filters);
 
     return users.map((user) => ({
@@ -25,15 +18,16 @@ export const AdminUserService = {
       role: user.role,
       createdAt: user.createdAt,
       tenantId: user.ownedTenant?.id ?? null,
+      tenantName: user.ownedTenant?.businessName ?? null,
       tenantBusinessName: user.ownedTenant?.businessName ?? null
     }));
   },
 
-  async getById(id: string): Promise<AdminUserDetailsDto | null> {
+  async getByIdOrThrow(id: string) {
     const user = await AdminUserRepository.findById(id);
 
     if (!user) {
-      return null;
+      notFound();
     }
 
     return {
@@ -49,7 +43,15 @@ export const AdminUserService = {
             businessName: user.ownedTenant.businessName,
             personalName: user.ownedTenant.personalName,
             email: user.ownedTenant.email,
-            phone: user.ownedTenant.phone
+            phone: user.ownedTenant.phone,
+            subscription: user.ownedTenant.saasSubscription
+              ? {
+                  id: user.ownedTenant.saasSubscription.id,
+                  planName: user.ownedTenant.saasSubscription.planName,
+                  status: user.ownedTenant.saasSubscription.status,
+                  currentPeriodEnd: user.ownedTenant.saasSubscription.currentPeriodEnd
+                }
+              : null
           }
         : null,
       subscription: user.ownedTenant?.saasSubscription
@@ -63,51 +65,40 @@ export const AdminUserService = {
     };
   },
 
-  async getByIdOrThrow(id: string): Promise<AdminUserDetailsDto> {
-    const user = await this.getById(id);
+  async update(
+    userId: string,
+    input: UpdateAdminUserInput,
+    context: {
+      currentUserId: string;
+    }
+  ) {
+    const user = await AdminUserRepository.findById(userId);
 
     if (!user) {
       notFound();
     }
 
-    return user;
-  },
-
-  async update(
-    targetUserId: string,
-    actingAdminUserId: string,
-    input: UpdateAdminUserInput
-  ) {
-    const parsed = UpdateAdminUserSchema.parse(input);
-    const currentUser = await AdminUserRepository.findById(targetUserId);
-
-    if (!currentUser) {
-      notFound();
+    if (context.currentUserId === userId && input.role !== UserRole.ADMIN) {
+      throw new Error("Você não pode remover seu próprio acesso administrativo.");
     }
 
-    if (
-      targetUserId === actingAdminUserId &&
-      currentUser.role === "ADMIN" &&
-      parsed.role !== "ADMIN"
-    ) {
-      throw new Error("Voc? n?o pode remover seu pr?prio acesso administrativo.");
-    }
-
-    if (currentUser.role === "ADMIN" && parsed.role !== "ADMIN") {
+    if (user.role === UserRole.ADMIN && input.role !== UserRole.ADMIN) {
       const adminCount = await AdminUserRepository.countAdmins();
 
       if (adminCount <= 1) {
-        throw new Error("O sistema precisa manter pelo menos um usu?rio ADMIN.");
+        throw new Error("O sistema precisa manter ao menos um administrador ativo.");
       }
     }
 
-    return AdminUserRepository.updateById(targetUserId, {
-      name: parsed.name,
-      role: parsed.role
+    await AdminUserRepository.updateById(userId, {
+      name: input.name,
+      role: input.role
     });
+
+    return AdminUserRepository.findById(userId);
   },
 
-  getFormValues(user: AdminUserDetailsDto): AdminUserFormValuesDto {
+  getFormValues(user: { name: string; role: UserRole }) {
     return {
       name: user.name,
       role: user.role

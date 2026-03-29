@@ -1,6 +1,6 @@
-﻿"use client";
+"use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
@@ -8,6 +8,7 @@ import {
   ChevronDown,
   ChevronUp,
   Clock3,
+  Loader2,
   MapPin,
   RotateCcw,
   XCircle
@@ -16,6 +17,11 @@ import type {
   StudentAppointmentStatus,
   StudentUpcomingAppointment
 } from "@/modules/student/services/student-portal.service";
+import {
+  confirmStudentAppointmentAction,
+  requestStudentAppointmentCancellationAction,
+  requestStudentAppointmentRescheduleAction
+} from "@/modules/student/actions/student-appointment.action";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,14 +38,18 @@ function getStatusHelper(status: StudentAppointmentStatus) {
   }
 
   if (status === "Cancelado") {
-    return "Sessão cancelada. Em caso de necessidade, alinhe um novo horário com o personal.";
+    return "Sessão cancelada ou com solicitação de cancelamento registrada. Em caso de necessidade, alinhe um novo horário com o personal.";
   }
 
   if (status === "Concluído") {
     return "Sessão já finalizada e registrada no seu histórico.";
   }
 
-  return "Qualquer alteração depende da confirmação do personal responsável.";
+  if (status === "Confirmado") {
+    return "Sua presença já foi confirmada e o personal consegue visualizar essa resposta.";
+  }
+
+  return "Essa sessão está aguardando sua confirmação ou uma nova interação com o personal responsável.";
 }
 
 type StudentAgendaItemCardProps = {
@@ -50,6 +60,7 @@ export function StudentAgendaItemCard({ appointment }: StudentAgendaItemCardProp
   const [status, setStatus] = useState<StudentAppointmentStatus>(appointment.status);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   const actionState = useMemo(() => {
     const isFinal = status === "Cancelado" || status === "Concluído";
@@ -61,21 +72,27 @@ export function StudentAgendaItemCard({ appointment }: StudentAgendaItemCardProp
     };
   }, [status]);
 
-  function handleConfirmPresence() {
-    setStatus("Confirmado");
-    setFeedbackMessage("Presença confirmada com sucesso. Seu personal verá essa atualização.");
-  }
+  function handleAction(
+    nextStatus: StudentAppointmentStatus,
+    action: (appointmentId: string) => Promise<{ success: boolean; message: string }>,
+    openDetails = false
+  ) {
+    setFeedbackMessage(null);
 
-  function handleRescheduleRequest() {
-    setStatus("Reagendamento solicitado");
-    setFeedbackMessage("Solicitação de reagendamento enviada. Agora ela depende de aprovação.");
-    setDetailsOpen(true);
-  }
+    startTransition(async () => {
+      const result = await action(appointment.id);
 
-  function handleCancelSession() {
-    setStatus("Cancelado");
-    setFeedbackMessage("Pedido de cancelamento registrado. Se necessário, combine um novo horário com o personal.");
-    setDetailsOpen(true);
+      if (!result.success) {
+        setFeedbackMessage(result.message);
+        return;
+      }
+
+      setStatus(nextStatus);
+      setFeedbackMessage(result.message);
+      if (openDetails) {
+        setDetailsOpen(true);
+      }
+    });
   }
 
   return (
@@ -133,9 +150,7 @@ export function StudentAgendaItemCard({ appointment }: StudentAgendaItemCardProp
         <div className="rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-4">
           <p className="text-sm font-medium text-slate-950">Condição da sessão</p>
           <p className="mt-2 text-sm leading-6 text-slate-600">{getStatusHelper(status)}</p>
-          {feedbackMessage ? (
-            <p className="mt-3 text-sm font-medium text-primary">{feedbackMessage}</p>
-          ) : null}
+          {feedbackMessage ? <p className="mt-3 text-sm font-medium text-primary">{feedbackMessage}</p> : null}
         </div>
 
         {detailsOpen ? (
@@ -181,14 +196,19 @@ export function StudentAgendaItemCard({ appointment }: StudentAgendaItemCardProp
               </>
             )}
           </Button>
-          <Button type="button" disabled={!actionState.canConfirm} onClick={handleConfirmPresence}>
+          <Button
+            type="button"
+            disabled={!actionState.canConfirm || isPending}
+            onClick={() => handleAction("Confirmado", confirmStudentAppointmentAction)}
+          >
+            {isPending ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
             Confirmar presença
           </Button>
           <Button
             type="button"
             variant="outline"
-            disabled={!actionState.canReschedule}
-            onClick={handleRescheduleRequest}
+            disabled={!actionState.canReschedule || isPending}
+            onClick={() => handleAction("Reagendamento solicitado", requestStudentAppointmentRescheduleAction, true)}
           >
             <RotateCcw className="mr-2 size-4" />
             Solicitar reagendamento
@@ -196,8 +216,8 @@ export function StudentAgendaItemCard({ appointment }: StudentAgendaItemCardProp
           <Button
             type="button"
             variant="outline"
-            disabled={!actionState.canCancel}
-            onClick={handleCancelSession}
+            disabled={!actionState.canCancel || isPending}
+            onClick={() => handleAction("Cancelado", requestStudentAppointmentCancellationAction, true)}
           >
             <XCircle className="mr-2 size-4" />
             Cancelar sessão

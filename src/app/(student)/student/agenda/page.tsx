@@ -3,7 +3,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
 import { StudentAgendaItemCard } from "@/components/shared/student-agenda-item-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { requireStudent } from "@/lib/auth-helpers";
+import { requireCurrentStudent } from "@/lib/student";
 import {
   studentAgendaStatuses,
   StudentPortalService,
@@ -27,11 +27,11 @@ function parseStatus(status?: string): StudentAppointmentStatus | "Todos" {
 }
 
 export default async function StudentAgendaPage({ searchParams }: StudentAgendaPageProps) {
-  await requireStudent();
+  const student = await requireCurrentStudent();
 
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const selectedStatus = parseStatus(resolvedSearchParams?.status);
-  const appointments = StudentPortalService.getAgenda(selectedStatus);
+  const appointments = await StudentPortalService.getAgenda(student.id, selectedStatus);
   const statusOptions = StudentPortalService.getAgendaStatusOptions();
 
   return (

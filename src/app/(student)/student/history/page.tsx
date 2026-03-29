@@ -5,7 +5,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { requireStudent } from "@/lib/auth-helpers";
+import { requireCurrentStudent } from "@/lib/student";
 import {
   StudentPortalService,
   type StudentHistoryAttendanceFilter,
@@ -44,11 +44,11 @@ function getAttendanceVariant(attendance: string) {
 }
 
 export default async function StudentHistoryPage({ searchParams }: StudentHistoryPageProps) {
-  await requireStudent();
+  const student = await requireCurrentStudent();
   const params = searchParams ? await searchParams : undefined;
   const period = parsePeriod(params?.period);
   const attendance = parseAttendance(params?.attendance);
-  const history = StudentPortalService.getHistory({ period, attendance });
+  const history = await StudentPortalService.getHistory(student.id, { period, attendance });
   const filterOptions = StudentPortalService.getHistoryFilterOptions();
 
   return (

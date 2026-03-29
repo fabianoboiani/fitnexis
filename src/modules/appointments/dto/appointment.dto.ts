@@ -1,4 +1,4 @@
-import type { AppointmentStatus } from "@prisma/client";
+﻿import type { AppointmentStatus, StudentAppointmentResponseStatus } from "@prisma/client";
 
 export type AppointmentListItemDto = {
   id: string;
@@ -8,6 +8,9 @@ export type AppointmentListItemDto = {
   startsAt: Date;
   endsAt: Date;
   status: AppointmentStatus;
+  studentResponseStatus: StudentAppointmentResponseStatus;
+  studentRespondedAt: Date | null;
+  studentResponseNote: string | null;
   notes: string | null;
 };
 
@@ -19,6 +22,9 @@ export type AppointmentDetailsDto = {
   startsAt: Date;
   endsAt: Date;
   status: AppointmentStatus;
+  studentResponseStatus: StudentAppointmentResponseStatus;
+  studentRespondedAt: Date | null;
+  studentResponseNote: string | null;
   notes: string | null;
 };
 

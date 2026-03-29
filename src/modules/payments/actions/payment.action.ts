@@ -1,9 +1,10 @@
-"use server";
+﻿"use server";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireTenant } from "@/lib/tenant";
 import { PaymentService } from "@/modules/payments/services/payment.service";
+import { StudentNoticeService } from "@/modules/student/notices/services/student-notice.service";
 import {
   CreatePaymentSchema,
   type PaymentFormInput,
@@ -17,7 +18,13 @@ type PaymentActionState = {
 };
 
 function mapActionError(error: unknown) {
-  return error instanceof Error ? error.message : "N?o foi poss?vel salvar o pagamento.";
+  return error instanceof Error ? error.message : "Não foi possível salvar o pagamento.";
+}
+
+function revalidatePaymentViews() {
+  revalidatePath("/payments");
+  revalidatePath("/student");
+  revalidatePath("/student/notices");
 }
 
 export async function createPaymentAction(input: PaymentFormInput): Promise<PaymentActionState> {
@@ -33,7 +40,8 @@ export async function createPaymentAction(input: PaymentFormInput): Promise<Paym
   }
 
   try {
-    await PaymentService.create(tenant.id, parsed.data);
+    const payment = await PaymentService.create(tenant.id, parsed.data);
+    await StudentNoticeService.syncPaymentNoticeById(payment.id);
   } catch (error) {
     return {
       success: false,
@@ -41,7 +49,7 @@ export async function createPaymentAction(input: PaymentFormInput): Promise<Paym
     };
   }
 
-  revalidatePath("/payments");
+  revalidatePaymentViews();
   redirect("/payments?success=created");
 }
 
@@ -62,6 +70,7 @@ export async function updatePaymentAction(
 
   try {
     await PaymentService.update(tenant.id, paymentId, parsed.data);
+    await StudentNoticeService.syncPaymentNoticeById(paymentId);
   } catch (error) {
     return {
       success: false,
@@ -69,20 +78,23 @@ export async function updatePaymentAction(
     };
   }
 
-  revalidatePath("/payments");
+  revalidatePaymentViews();
   redirect("/payments?success=updated");
 }
 
 export async function markPaymentAsPaidAction(paymentId: string, paidAt?: string) {
   const tenant = await requireTenant();
   await PaymentService.markAsPaid(tenant.id, paymentId, paidAt);
-  revalidatePath("/payments");
+  await StudentNoticeService.syncPaymentNoticeById(paymentId);
+  revalidatePaymentViews();
   redirect("/payments?success=paid");
 }
 
 export async function markPaymentAsPaidNowAction(paymentId: string, _formData: FormData) {
   const tenant = await requireTenant();
   await PaymentService.markAsPaid(tenant.id, paymentId);
-  revalidatePath("/payments");
+  await StudentNoticeService.syncPaymentNoticeById(paymentId);
+  revalidatePaymentViews();
   redirect("/payments?success=paid");
 }
+

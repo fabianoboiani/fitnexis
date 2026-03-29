@@ -1,4 +1,9 @@
-import type { AppointmentStatus, Prisma, PrismaClient } from "@prisma/client";
+import type {
+  AppointmentStatus,
+  Prisma,
+  PrismaClient,
+  StudentAppointmentResponseStatus
+} from "@prisma/client";
 import { prisma } from "@/lib/db";
 
 type DbClient = PrismaClient | Prisma.TransactionClient;
@@ -45,6 +50,64 @@ export const AppointmentRepository = {
     });
   },
 
+  async findByIdAndStudent(id: string, studentId: string) {
+    return prisma.appointment.findFirst({
+      where: {
+        id,
+        studentId
+      },
+      include: {
+        student: {
+          select: {
+            id: true,
+            name: true,
+            tenantId: true
+          }
+        }
+      }
+    });
+  },
+
+  async findOverlappingByTenant(
+    tenantId: string,
+    startsAt: Date,
+    endsAt: Date,
+    excludeId?: string
+  ) {
+    return prisma.appointment.findFirst({
+      where: {
+        tenantId,
+        status: {
+          not: "CANCELED"
+        },
+        ...(excludeId
+          ? {
+              id: {
+                not: excludeId
+              }
+            }
+          : {}),
+        startsAt: {
+          lt: endsAt
+        },
+        endsAt: {
+          gt: startsAt
+        }
+      },
+      include: {
+        student: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
+      },
+      orderBy: {
+        startsAt: "asc"
+      }
+    });
+  },
+
   async create(
     data: {
       tenantId: string;
@@ -72,12 +135,33 @@ export const AppointmentRepository = {
       endsAt: Date;
       status: Prisma.AppointmentUpdateInput["status"];
       notes?: string | null;
+      studentResponseStatus?: StudentAppointmentResponseStatus;
+      studentRespondedAt?: Date | null;
+      studentResponseNote?: string | null;
     }
   ) {
     return prisma.appointment.updateMany({
       where: {
         id,
         tenantId
+      },
+      data
+    });
+  },
+
+  async updateStudentResponseByIdAndStudent(
+    id: string,
+    studentId: string,
+    data: {
+      studentResponseStatus: StudentAppointmentResponseStatus;
+      studentRespondedAt: Date;
+      studentResponseNote?: string | null;
+    }
+  ) {
+    return prisma.appointment.updateMany({
+      where: {
+        id,
+        studentId
       },
       data
     });

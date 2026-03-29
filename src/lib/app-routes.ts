@@ -22,8 +22,12 @@ export const studentRoutePrefixes = [
   "/student/profile"
 ];
 
+function isRouteMatch(pathname: string, prefix: string) {
+  return pathname === prefix || pathname.startsWith(`${prefix}/`);
+}
+
 function matchesPrefix(pathname: string, prefixes: string[]) {
-  return prefixes.some((prefix) => pathname.startsWith(prefix));
+  return prefixes.some((prefix) => isRouteMatch(pathname, prefix));
 }
 
 export function isAdminRoute(pathname: string) {

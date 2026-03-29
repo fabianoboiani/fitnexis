@@ -1,4 +1,4 @@
-import { PageHeader } from "@/components/shared/page-header";
+﻿import { PageHeader } from "@/components/shared/page-header";
 import { AppointmentForm } from "@/components/shared/appointment-form";
 import { requireTenant } from "@/lib/tenant";
 import { createAppointmentAction } from "@/modules/appointments/actions/appointment.action";
@@ -17,7 +17,7 @@ export default async function NewAppointmentPage() {
       />
       <AppointmentForm
         title="Cadastro de compromisso"
-        description="Informe o aluno, título, horário ? observações do atendimento."
+        description="Informe o aluno, título, horário e observações do atendimento."
         submitLabel="Cadastrar compromisso"
         initialValues={AppointmentService.getFormValues()}
         studentOptions={students.map((student) => ({

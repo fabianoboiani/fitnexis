@@ -1,9 +1,10 @@
-"use server";
+﻿"use server";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireTenant } from "@/lib/tenant";
 import { ProgressService } from "@/modules/progress/services/progress.service";
+import { StudentNoticeService } from "@/modules/student/notices/services/student-notice.service";
 import {
   CreateProgressRecordSchema,
   type ProgressRecordFormInput
@@ -24,21 +25,26 @@ export async function createProgressRecordAction(
   if (!parsed.success) {
     return {
       success: false,
-      message: "Revise os campos da evolu??o.",
+      message: "Revise os campos da evolução.",
       fieldErrors: parsed.error.flatten().fieldErrors
     };
   }
 
   try {
-    await ProgressService.create(tenant.id, parsed.data);
+    const progressRecord = await ProgressService.create(tenant.id, parsed.data);
+    await StudentNoticeService.syncProgressNoticeById(progressRecord.id);
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : "N?o foi poss?vel salvar a evolu??o."
+      message: error instanceof Error ? error.message : "Não foi possível salvar a evolução."
     };
   }
 
   revalidatePath("/progress");
   revalidatePath(`/students/${parsed.data.studentId}/progress`);
+  revalidatePath("/student");
+  revalidatePath("/student/progress");
+  revalidatePath("/student/notices");
   redirect(`/students/${parsed.data.studentId}/progress?success=created`);
 }
+

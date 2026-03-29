@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+﻿import { notFound } from "next/navigation";
 import { PaymentMethod, PaymentStatus } from "@prisma/client";
 import type {
   PaymentDetailsDto,
@@ -43,16 +43,16 @@ function mapFormValues(payment?: PaymentDetailsDto): PaymentFormValuesDto {
     };
   }
 
-    return {
-      studentId: payment.studentId,
-      amount: payment.amount,
-      dueDate: payment.dueDate.toISOString().slice(0, 10),
-      paymentMethod: payment.paymentMethod ?? undefined,
-      notes: payment.notes ?? "",
-      status: payment.status,
-      paidAt: payment.paidAt ? payment.paidAt.toISOString().slice(0, 10) : ""
-    };
-  }
+  return {
+    studentId: payment.studentId,
+    amount: payment.amount,
+    dueDate: payment.dueDate.toISOString().slice(0, 10),
+    paymentMethod: payment.paymentMethod ?? undefined,
+    notes: payment.notes ?? "",
+    status: payment.status,
+    paidAt: payment.paidAt ? payment.paidAt.toISOString().slice(0, 10) : ""
+  };
+}
 
 export const PaymentService = {
   async listByTenant(
@@ -108,7 +108,7 @@ export const PaymentService = {
     const student = await StudentService.getById(tenantId, parsed.studentId);
 
     if (!student) {
-      throw new Error("O aluno informado n?o pertence ao tenant atual.");
+      throw new Error("O aluno informado não pertence ao tenant atual.");
     }
 
     const shouldMarkAsPaid = parsed.status === PaymentStatus.PAID;
@@ -141,7 +141,7 @@ export const PaymentService = {
     const student = await StudentService.getById(tenantId, parsed.studentId);
 
     if (!student) {
-      throw new Error("O aluno informado n?o pertence ao tenant atual.");
+      throw new Error("O aluno informado não pertence ao tenant atual.");
     }
 
     const isPaid = parsed.status === PaymentStatus.PAID;
@@ -184,11 +184,11 @@ export const PaymentService = {
 
   getPaymentMethodOptions() {
     return [
-      { value: "", label: "N?o informado" },
+      { value: "", label: "Não informado" },
       { value: PaymentMethod.PIX, label: "PIX" },
       { value: PaymentMethod.CASH, label: "Dinheiro" },
-      { value: PaymentMethod.CARD, label: "Cartao" },
-      { value: PaymentMethod.TRANSFER, label: "Transferencia" },
+      { value: PaymentMethod.CARD, label: "Cartão" },
+      { value: PaymentMethod.TRANSFER, label: "Transferência" },
       { value: PaymentMethod.OTHER, label: "Outro" }
     ];
   }

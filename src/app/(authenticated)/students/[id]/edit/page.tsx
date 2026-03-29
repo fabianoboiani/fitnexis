@@ -1,4 +1,4 @@
-import { PageHeader } from "@/components/shared/page-header";
+﻿import { PageHeader } from "@/components/shared/page-header";
 import { StudentForm } from "@/components/shared/student-form";
 import { requireTenant } from "@/lib/tenant";
 import { updateStudentAction } from "@/modules/students/actions/student.action";
@@ -20,10 +20,10 @@ export default async function EditStudentPage({ params }: EditStudentPageProps) 
     <main className="space-y-8 px-6 py-8">
       <PageHeader
         title={`Editar ${student.name}`}
-        description="Atualiz? os dados do aluno sem perder o isolamento por tenant."
+        description="Atualize os dados do aluno sem perder o isolamento por tenant."
       />
       <StudentForm
-        title="Edicao de aluno"
+        title="Edição de aluno"
         description="Os dados abaixo pertencem apenas ao tenant autenticado."
         submitLabel="Salvar alterações"
         initialValues={StudentService.getFormValues(student)}

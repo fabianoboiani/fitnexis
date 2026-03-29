@@ -4,15 +4,18 @@ import { Sparkles, UserRound } from "lucide-react";
 import { LogoutButton } from "@/components/shared/logout-button";
 import { StudentSidebarNav } from "@/components/shared/student-sidebar-nav";
 import { Badge } from "@/components/ui/badge";
-import { requireStudent } from "@/lib/auth-helpers";
+import { requireAuth } from "@/lib/auth-helpers";
+import { requireCurrentStudent } from "@/lib/student";
 
 export default async function StudentLayout({
   children
 }: Readonly<{
   children: ReactNode;
 }>) {
-  const student = await requireStudent();
+  const user = await requireAuth();
+  const student = await requireCurrentStudent();
   const firstName = student.name.split(" ")[0] ?? student.name;
+  const accountEmail = student.user?.email ?? user.email;
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.10),transparent_28%),linear-gradient(180deg,#f7faff_0%,#eef4ff_34%,#f8fafc_100%)]">
@@ -43,7 +46,7 @@ export default async function StudentLayout({
                 </div>
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-slate-950">{student.name}</p>
-                  <p className="truncate text-xs text-slate-500">{student.email}</p>
+                  <p className="truncate text-xs text-slate-500">{accountEmail}</p>
                 </div>
               </div>
               <div className="mt-4 rounded-2xl border border-slate-200/80 bg-white/80 px-3 py-3 text-sm text-slate-600">

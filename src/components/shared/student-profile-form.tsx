@@ -1,6 +1,6 @@
-"use client";
+﻿"use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { ShieldCheck, UserCircle2 } from "lucide-react";
@@ -25,12 +25,29 @@ type StudentProfileFormProps = {
     plan: string;
     nextCheckIn: string;
   };
+  onSubmitProfileAction: (values: UpdateStudentProfileInput) => Promise<{
+    success: boolean;
+    message?: string;
+    fieldErrors?: Record<string, string[] | undefined>;
+  }>;
+  onSubmitPasswordAction: (values: ChangeStudentPasswordInput) => Promise<{
+    success: boolean;
+    message?: string;
+    fieldErrors?: Record<string, string[] | undefined>;
+  }>;
 };
 
-export function StudentProfileForm({ initialProfile, account }: StudentProfileFormProps) {
+export function StudentProfileForm({
+  initialProfile,
+  account,
+  onSubmitProfileAction,
+  onSubmitPasswordAction
+}: StudentProfileFormProps) {
   const displayPlanName = account.plan.replace(/^Acompanhamento\s+/i, "").toLowerCase();
   const [profileMessage, setProfileMessage] = useState<string | null>(null);
   const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
+  const [profilePending, startProfileTransition] = useTransition();
+  const [passwordPending, startPasswordTransition] = useTransition();
 
   const profileForm = useForm<UpdateStudentProfileInput>({
     resolver: zodResolver(UpdateStudentProfileSchema),
@@ -46,17 +63,61 @@ export function StudentProfileForm({ initialProfile, account }: StudentProfileFo
     }
   });
 
-  const onSubmitProfile = profileForm.handleSubmit(() => {
-    setProfileMessage(
-      "Dados atualizados localmente no MVP. A integração real com o backend pode usar esta mesma estrutura."
-    );
+  const onSubmitProfile = profileForm.handleSubmit((values) => {
+    setProfileMessage(null);
+    profileForm.clearErrors();
+
+    startProfileTransition(async () => {
+      const result = await onSubmitProfileAction(values);
+
+      if (!result.success) {
+        if (result.fieldErrors) {
+          for (const [fieldName, messages] of Object.entries(result.fieldErrors)) {
+            const firstMessage = messages?.[0];
+            if (firstMessage) {
+              profileForm.setError(fieldName as keyof UpdateStudentProfileInput, {
+                type: "server",
+                message: firstMessage
+              });
+            }
+          }
+        }
+
+        setProfileMessage(result.message ?? "Não foi possível atualizar seu perfil.");
+        return;
+      }
+
+      setProfileMessage(result.message ?? "Perfil atualizado com sucesso.");
+    });
   });
 
-  const onSubmitPassword = passwordForm.handleSubmit(() => {
-    setPasswordMessage(
-      "Solicitação de troca de senha validada localmente. No backend real, esta ação exigirá confirmação segura."
-    );
-    passwordForm.reset();
+  const onSubmitPassword = passwordForm.handleSubmit((values) => {
+    setPasswordMessage(null);
+    passwordForm.clearErrors();
+
+    startPasswordTransition(async () => {
+      const result = await onSubmitPasswordAction(values);
+
+      if (!result.success) {
+        if (result.fieldErrors) {
+          for (const [fieldName, messages] of Object.entries(result.fieldErrors)) {
+            const firstMessage = messages?.[0];
+            if (firstMessage) {
+              passwordForm.setError(fieldName as keyof ChangeStudentPasswordInput, {
+                type: "server",
+                message: firstMessage
+              });
+            }
+          }
+        }
+
+        setPasswordMessage(result.message ?? "Não foi possível atualizar sua senha.");
+        return;
+      }
+
+      setPasswordMessage(result.message ?? "Senha atualizada com sucesso.");
+      passwordForm.reset();
+    });
   });
 
   return (
@@ -71,7 +132,7 @@ export function StudentProfileForm({ initialProfile, account }: StudentProfileFo
               <div>
                 <CardTitle className="text-2xl text-slate-950">Meus dados</CardTitle>
                 <p className="text-sm text-slate-500">
-                  Atualize suas informações pessoais dentro dos limites do seu acompanhamento.
+                  Atualize suas informações pessoais com base no seu cadastro real no sistema.
                 </p>
               </div>
             </div>
@@ -88,7 +149,7 @@ export function StudentProfileForm({ initialProfile, account }: StudentProfileFo
                 <Label htmlFor="email">E-mail</Label>
                 <Input id="email" type="email" {...profileForm.register("email")} disabled />
                 <p className="text-xs text-slate-500">
-                  Seu e-mail é exibido para consulta. Alterações futuras podem exigir validação.
+                  O e-mail de acesso é exibido para consulta e faz parte da sua autenticação.
                 </p>
               </div>
 
@@ -111,39 +172,24 @@ export function StudentProfileForm({ initialProfile, account }: StudentProfileFo
               </div>
 
               <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="photoUrl">Foto de perfil</Label>
-                <Input id="photoUrl" placeholder="https://..." {...profileForm.register("photoUrl")} />
+                <Label htmlFor="notes">Observações</Label>
+                <Textarea id="notes" {...profileForm.register("notes")} />
                 <p className="text-xs text-slate-500">
-                  No MVP, a foto usa uma URL simples para representar a futura integração de upload.
+                  Use este espaço para observações úteis do seu acompanhamento dentro do contexto já existente do aluno.
                 </p>
-                <p className="text-xs text-destructive">{profileForm.formState.errors.photoUrl?.message}</p>
-              </div>
-
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="emergencyContact">Contato de emergência</Label>
-                <Input id="emergencyContact" {...profileForm.register("emergencyContact")} />
-                <p className="text-xs text-destructive">
-                  {profileForm.formState.errors.emergencyContact?.message}
-                </p>
-              </div>
-
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="personalNotes">Observações pessoais</Label>
-                <Textarea id="personalNotes" {...profileForm.register("personalNotes")} />
-                <p className="text-xs text-slate-500">
-                  Use este espaço para informações úteis do seu dia a dia, sem alterar o planejamento do personal.
-                </p>
-                <p className="text-xs text-destructive">
-                  {profileForm.formState.errors.personalNotes?.message}
-                </p>
+                <p className="text-xs text-destructive">{profileForm.formState.errors.notes?.message}</p>
               </div>
 
               {profileMessage ? (
-                <p className="text-sm text-emerald-600 md:col-span-2">{profileMessage}</p>
+                <p
+                  className={`text-sm md:col-span-2 ${profileMessage.includes("sucesso") ? "text-emerald-600" : "text-destructive"}`}
+                >
+                  {profileMessage}
+                </p>
               ) : null}
 
               <div className="md:col-span-2">
-                <Button type="submit">Salvar alterações</Button>
+                <Button type="submit">{profilePending ? "Salvando..." : "Salvar alterações"}</Button>
               </div>
             </form>
           </CardContent>
@@ -158,7 +204,7 @@ export function StudentProfileForm({ initialProfile, account }: StudentProfileFo
               <div>
                 <CardTitle className="text-2xl text-slate-950">Segurança da conta</CardTitle>
                 <p className="text-sm text-slate-500">
-                  Atualize sua senha com segurança. No MVP, o fluxo é validado localmente para preparar a integração real.
+                  Atualize sua senha com base na conta de acesso real vinculada ao seu perfil de aluno.
                 </p>
               </div>
             </div>
@@ -188,12 +234,16 @@ export function StudentProfileForm({ initialProfile, account }: StudentProfileFo
               </div>
 
               {passwordMessage ? (
-                <p className="text-sm text-emerald-600 md:col-span-3">{passwordMessage}</p>
+                <p
+                  className={`text-sm md:col-span-3 ${passwordMessage.includes("sucesso") ? "text-emerald-600" : "text-destructive"}`}
+                >
+                  {passwordMessage}
+                </p>
               ) : null}
 
               <div className="md:col-span-3">
                 <Button type="submit" variant="outline" className="border-slate-200 bg-white">
-                  Atualizar senha
+                  {passwordPending ? "Atualizando..." : "Atualizar senha"}
                 </Button>
               </div>
             </form>
@@ -206,12 +256,7 @@ export function StudentProfileForm({ initialProfile, account }: StudentProfileFo
           <CardContent className="p-6">
             <div className="flex flex-col items-center gap-4 text-center">
               <div className="flex size-24 items-center justify-center overflow-hidden rounded-[2rem] bg-gradient-to-br from-blue-600 to-cyan-500 text-2xl font-semibold text-white shadow-lg">
-                {initialProfile.photoUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={initialProfile.photoUrl} alt={initialProfile.name} className="h-full w-full object-cover" />
-                ) : (
-                  initialProfile.name.slice(0, 2).toUpperCase()
-                )}
+                {initialProfile.name.slice(0, 2).toUpperCase()}
               </div>
               <div>
                 <h2 className="text-xl font-semibold text-slate-950">{initialProfile.name}</h2>
@@ -257,7 +302,7 @@ export function StudentProfileForm({ initialProfile, account }: StudentProfileFo
               <p className="font-medium text-slate-950">{account.nextCheckIn}</p>
             </div>
             <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-600">
-              Algumas alterações de cadastro podem depender de validação futura para preservar a organização do seu acompanhamento.
+              Seu perfil agora usa dados reais do cadastro do aluno e da conta vinculada no Fitnexis.
             </div>
           </CardContent>
         </Card>

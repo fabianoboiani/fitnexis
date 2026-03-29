@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { StudentStatus } from "@prisma/client";
+import { StudentStatus, UserRole } from "@prisma/client";
+import { prisma } from "@/lib/db";
 import {
   type StudentDetailsDto,
   type StudentFormValuesDto,
@@ -8,13 +9,52 @@ import {
 import { StudentRepository } from "@/modules/students/repositories/student.repository";
 import {
   CreateStudentSchema,
+  EnableStudentPortalAccessSchema,
   type CreateStudentInput,
+  type EnableStudentPortalAccessInput,
   UpdateStudentSchema,
   type UpdateStudentInput
 } from "@/modules/students/schemas/student.schema";
+import { PasswordService } from "@/modules/auth/services/password.service";
 
 function parseBirthDate(value?: string) {
   return value ? new Date(`${value}T00:00:00`) : undefined;
+}
+
+function mapStudentListItem(student: Awaited<ReturnType<typeof StudentRepository.findManyByTenant>>[number]): StudentListItemDto {
+  return {
+    id: student.id,
+    name: student.name,
+    email: student.email,
+    phone: student.phone,
+    status: student.status,
+    goal: student.goal,
+    createdAt: student.createdAt,
+    userId: student.userId,
+    hasPortalAccount: Boolean(student.userId),
+    hasPortalAccess: Boolean(student.userId && student.portalAccessEnabled),
+    portalAccessEmail: student.user?.email ?? null
+  };
+}
+
+function mapStudentDetails(student: NonNullable<Awaited<ReturnType<typeof StudentRepository.findByIdAndTenant>>>): StudentDetailsDto {
+  return {
+    id: student.id,
+    tenantId: student.tenantId,
+    userId: student.userId,
+    name: student.name,
+    email: student.email,
+    phone: student.phone,
+    birthDate: student.birthDate,
+    goal: student.goal,
+    notes: student.notes,
+    status: student.status,
+    createdAt: student.createdAt,
+    updatedAt: student.updatedAt,
+    hasPortalAccount: Boolean(student.userId),
+    hasPortalAccess: Boolean(student.userId && student.portalAccessEnabled),
+    portalAccessEmail: student.user?.email ?? null
+  };
 }
 
 function mapStudentFormValues(student?: StudentDetailsDto): StudentFormValuesDto {
@@ -41,14 +81,23 @@ function mapStudentFormValues(student?: StudentDetailsDto): StudentFormValuesDto
   };
 }
 
+export class StudentPortalAccessError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "StudentPortalAccessError";
+  }
+}
+
 export const StudentService = {
   async listByTenant(tenantId: string, search?: string): Promise<StudentListItemDto[]> {
     const normalizedSearch = search?.trim() ? search.trim() : undefined;
-    return StudentRepository.findManyByTenant(tenantId, normalizedSearch);
+    const students = await StudentRepository.findManyByTenant(tenantId, normalizedSearch);
+    return students.map(mapStudentListItem);
   },
 
   async getById(tenantId: string, id: string): Promise<StudentDetailsDto | null> {
-    return StudentRepository.findByIdAndTenant(id, tenantId);
+    const student = await StudentRepository.findByIdAndTenant(id, tenantId);
+    return student ? mapStudentDetails(student) : null;
   },
 
   async getByIdOrThrow(tenantId: string, id: string): Promise<StudentDetailsDto> {
@@ -58,7 +107,7 @@ export const StudentService = {
       notFound();
     }
 
-    return student;
+    return mapStudentDetails(student);
   },
 
   async create(tenantId: string, input: CreateStudentInput) {
@@ -84,17 +133,237 @@ export const StudentService = {
       notFound();
     }
 
-    await StudentRepository.updateByIdAndTenant(id, tenantId, {
-      name: parsed.name,
-      email: parsed.email,
-      phone: parsed.phone,
-      birthDate: parsed.birthDate ? parseBirthDate(parsed.birthDate) : null,
-      goal: parsed.goal,
-      notes: parsed.notes,
-      status: parsed.status
+    if (existingStudent.userId && !parsed.email) {
+      throw new Error("Alunos com acesso ao portal precisam manter um e-mail válido.");
+    }
+
+    if (existingStudent.userId && parsed.email && parsed.email !== existingStudent.user?.email) {
+      const emailInUse = await prisma.user.findFirst({
+        where: {
+          email: parsed.email,
+          id: {
+            not: existingStudent.userId
+          }
+        },
+        select: { id: true }
+      });
+
+      if (emailInUse) {
+        throw new Error("Já existe outro usuário utilizando este e-mail.");
+      }
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.student.update({
+        where: { id: existingStudent.id },
+        data: {
+          name: parsed.name,
+          email: parsed.email,
+          phone: parsed.phone,
+          birthDate: parsed.birthDate ? parseBirthDate(parsed.birthDate) : null,
+          goal: parsed.goal,
+          notes: parsed.notes,
+          status: parsed.status
+        }
+      });
+
+      if (existingStudent.userId) {
+        await tx.user.update({
+          where: { id: existingStudent.userId },
+          data: {
+            name: parsed.name,
+            ...(parsed.email ? { email: parsed.email } : {})
+          }
+        });
+      }
     });
 
-    return StudentRepository.findByIdAndTenant(id, tenantId);
+    const updatedStudent = await StudentRepository.findByIdAndTenant(id, tenantId);
+
+    if (!updatedStudent) {
+      notFound();
+    }
+
+    return mapStudentDetails(updatedStudent);
+  },
+
+  async enablePortalAccess(tenantId: string, studentId: string, input: EnableStudentPortalAccessInput) {
+    const parsed = EnableStudentPortalAccessSchema.parse(input);
+    const student = await StudentRepository.findByIdAndTenant(studentId, tenantId);
+
+    if (!student) {
+      notFound();
+    }
+
+    if (student.userId && student.portalAccessEnabled) {
+      throw new StudentPortalAccessError("Este aluno já possui acesso ao portal.");
+    }
+
+    const passwordHash = await PasswordService.hash(parsed.initialPassword);
+
+    if (student.userId) {
+      const emailInUse = await prisma.user.findFirst({
+        where: {
+          email: parsed.email,
+          id: {
+            not: student.userId
+          }
+        },
+        select: { id: true }
+      });
+
+      if (emailInUse) {
+        throw new StudentPortalAccessError("Já existe outro usuário utilizando este e-mail.");
+      }
+
+      await prisma.$transaction(async (tx) => {
+        await tx.user.update({
+          where: { id: student.userId! },
+          data: {
+            name: student.name,
+            email: parsed.email,
+            passwordHash,
+            role: UserRole.STUDENT
+          }
+        });
+
+        await tx.student.update({
+          where: { id: student.id },
+          data: {
+            email: parsed.email,
+            portalAccessEnabled: true
+          }
+        });
+      });
+    } else {
+      const existingUser = await prisma.user.findUnique({
+        where: { email: parsed.email },
+        select: {
+          id: true,
+          role: true,
+          studentProfile: {
+            select: {
+              id: true
+            }
+          }
+        }
+      });
+
+      await prisma.$transaction(async (tx) => {
+        let userIdToLink: string;
+
+        if (existingUser) {
+          if (existingUser.role !== UserRole.STUDENT) {
+            throw new StudentPortalAccessError("Já existe um usuário de outro perfil cadastrado com este e-mail.");
+          }
+
+          if (existingUser.studentProfile?.id && existingUser.studentProfile.id !== student.id) {
+            throw new StudentPortalAccessError("Já existe outro aluno utilizando este usuário de acesso.");
+          }
+
+          await tx.user.update({
+            where: { id: existingUser.id },
+            data: {
+              name: student.name,
+              passwordHash,
+              role: UserRole.STUDENT
+            }
+          });
+
+          userIdToLink = existingUser.id;
+        } else {
+          const user = await tx.user.create({
+            data: {
+              name: student.name,
+              email: parsed.email,
+              passwordHash,
+              role: UserRole.STUDENT
+            }
+          });
+
+          userIdToLink = user.id;
+        }
+
+        await tx.student.update({
+          where: { id: student.id },
+          data: {
+            userId: userIdToLink,
+            email: parsed.email,
+            portalAccessEnabled: true
+          }
+        });
+      });
+    }
+
+    const updatedStudent = await StudentRepository.findByIdAndTenant(studentId, tenantId);
+
+    if (!updatedStudent) {
+      notFound();
+    }
+
+    return mapStudentDetails(updatedStudent);
+  },
+
+  async disablePortalAccess(tenantId: string, studentId: string) {
+    const student = await StudentRepository.findByIdAndTenant(studentId, tenantId);
+
+    if (!student) {
+      notFound();
+    }
+
+    if (!student.userId) {
+      throw new StudentPortalAccessError("Este aluno ainda não possui uma conta de acesso criada.");
+    }
+
+    if (!student.portalAccessEnabled) {
+      throw new StudentPortalAccessError("O acesso ao portal já está desativado para este aluno.");
+    }
+
+    await prisma.student.update({
+      where: { id: student.id },
+      data: {
+        portalAccessEnabled: false
+      }
+    });
+
+    const updatedStudent = await StudentRepository.findByIdAndTenant(studentId, tenantId);
+
+    if (!updatedStudent) {
+      notFound();
+    }
+
+    return mapStudentDetails(updatedStudent);
+  },
+
+  async reactivatePortalAccess(tenantId: string, studentId: string) {
+    const student = await StudentRepository.findByIdAndTenant(studentId, tenantId);
+
+    if (!student) {
+      notFound();
+    }
+
+    if (!student.userId) {
+      throw new StudentPortalAccessError("Este aluno ainda não possui uma conta de acesso criada.");
+    }
+
+    if (student.portalAccessEnabled) {
+      throw new StudentPortalAccessError("O acesso ao portal já está habilitado para este aluno.");
+    }
+
+    await prisma.student.update({
+      where: { id: student.id },
+      data: {
+        portalAccessEnabled: true
+      }
+    });
+
+    const updatedStudent = await StudentRepository.findByIdAndTenant(studentId, tenantId);
+
+    if (!updatedStudent) {
+      notFound();
+    }
+
+    return mapStudentDetails(updatedStudent);
   },
 
   getFormValues(student?: StudentDetailsDto) {

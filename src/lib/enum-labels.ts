@@ -2,6 +2,7 @@
   AppointmentStatus,
   PaymentMethod,
   PaymentStatus,
+  StudentAppointmentResponseStatus,
   StudentStatus,
   SubscriptionStatus,
   UserRole
@@ -39,6 +40,13 @@ export const appointmentStatusLabels: Record<AppointmentStatus, string> = {
   COMPLETED: "Concluído",
   CANCELED: "Cancelado",
   MISSED: "Faltou"
+};
+
+export const studentAppointmentResponseLabels: Record<StudentAppointmentResponseStatus, string> = {
+  PENDING: "Pendente",
+  CONFIRMED: "Presença confirmada",
+  RESCHEDULE_REQUESTED: "Reagendamento solicitado",
+  CANCELED: "Cancelamento solicitado"
 };
 
 export const paymentMethodLabels: Record<PaymentMethod, string> = {

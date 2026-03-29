@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth-helpers";
@@ -24,27 +24,27 @@ export async function updateAdminUserAction(
   if (!parsed.success) {
     return {
       success: false,
-      message: "Revise os campos do usu?rio.",
+      message: "Revise os campos do usuário.",
       fieldErrors: parsed.error.flatten().fieldErrors
     };
   }
 
   try {
-    await AdminUserService.update(userId, admin.id, parsed.data);
+    await AdminUserService.update(userId, parsed.data, {
+      currentUserId: admin.id
+    });
   } catch (error) {
     return {
       success: false,
-      message:
-        error instanceof Error ? error.message : "N?o foi poss?vel atualizar o usu?rio."
+      message: error instanceof Error ? error.message : "Não foi possível atualizar o usuário."
     };
   }
 
-  revalidatePath("/admin");
   revalidatePath("/admin/users");
   revalidatePath(`/admin/users/${userId}`);
 
   return {
     success: true,
-    message: "Usu?rio atualizado com sucesso."
+    message: "Usuário atualizado com sucesso."
   };
 }

@@ -5,12 +5,12 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
 import { StudentDashboardSummaryCard } from "@/components/shared/student-dashboard-summary-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { requireStudent } from "@/lib/auth-helpers";
+import { requireCurrentStudent } from "@/lib/student";
 import { StudentPortalService } from "@/modules/student/services/student-portal.service";
 
 export default async function StudentProgressPage() {
-  await requireStudent();
-  const progress = StudentPortalService.getProgressOverview();
+  const student = await requireCurrentStudent();
+  const progress = await StudentPortalService.getProgressOverview(student.id);
 
   return (
     <main className="min-w-0 space-y-8 px-6 py-8">
@@ -52,7 +52,7 @@ export default async function StudentProgressPage() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-slate-700">{point.label}</p>
-                    <p className="text-xs text-slate-500">{point.value}%</p>
+                    <p className="text-xs text-slate-500">{point.rawValue} sess.</p>
                   </div>
                 </div>
               ))}

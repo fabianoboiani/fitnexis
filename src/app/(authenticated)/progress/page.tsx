@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -55,7 +55,7 @@ export default async function ProgressPage({ searchParams }: ProgressPageProps) 
           {records.length === 0 ? (
             <EmptyState
               title="Nenhum registro encontrado"
-              description="Cadastre evolucoes nos alunos para visualizar o histórico aqui."
+              description="Cadastre evoluções nos alunos para visualizar o histórico aqui."
             />
           ) : (
             <div className="space-y-3">
@@ -72,9 +72,7 @@ export default async function ProgressPage({ searchParams }: ProgressPageProps) 
                   </div>
                   <div className="flex flex-wrap gap-4 text-sm text-slate-600">
                     <span>Peso: {record.weight ? `${record.weight} kg` : "Não informado"}</span>
-                    <span>
-                      Gordura: {record.bodyFat ? `${record.bodyFat}%` : "Não informada"}
-                    </span>
+                    <span>Gordura: {record.bodyFat ? `${record.bodyFat}%` : "Não informada"}</span>
                   </div>
                   <Button asChild size="sm" variant="outline">
                     <Link href={`/students/${record.studentId}/progress`}>Ver aluno</Link>

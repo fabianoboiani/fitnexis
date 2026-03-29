@@ -1,29 +1,47 @@
-import { addDays, format, set, subDays } from "date-fns";
+import {
+  addDays,
+  endOfMonth,
+  format,
+  startOfMonth,
+  startOfWeek,
+  subDays,
+  subWeeks
+} from "date-fns";
 import { ptBR } from "date-fns/locale";
+import {
+  AppointmentStatus,
+  PaymentStatus,
+  StudentAppointmentResponseStatus,
+  StudentStatus
+} from "@prisma/client";
+import { prisma } from "@/lib/db";
+import { PasswordService } from "@/modules/auth/services/password.service";
+import type {
+  StudentNoticeFilter,
+  StudentNoticeItem
+} from "@/modules/student/notices/dto/student-notice.dto";
+import { StudentNoticeService } from "@/modules/student/notices/services/student-notice.service";
+import {
+  ChangeStudentPasswordSchema,
+  type ChangeStudentPasswordInput,
+  UpdateStudentProfileSchema,
+  type UpdateStudentProfileInput
+} from "@/modules/student/schemas/student-profile.schema";
 
 export const studentAgendaStatuses = [
   "Agendado",
   "Confirmado",
   "Pendente",
   "Cancelado",
-  "Conclu\u00eddo",
+  "Conclu\u00EDdo",
   "Reagendamento solicitado"
 ] as const;
 
 export type StudentAppointmentStatus = (typeof studentAgendaStatuses)[number];
-export type StudentAttendanceStatus = "Presen\u00e7a confirmada" | "Presente" | "Ausente justificado";
+export type StudentAttendanceStatus = "Presen\u00E7a confirmada" | "Presente" | "Ausente justificado";
 export type StudentHistoryPeriod = "all" | "30d" | "90d";
 export type StudentHistoryAttendanceFilter = "all" | "present" | "absent";
-export type StudentNoticeFilter = "all" | "unread" | "high-priority";
-export type StudentNoticeKind = "info" | "success" | "warning";
-export type StudentNoticePriority = "low" | "medium" | "high";
-export type StudentNoticeCategory =
-  | "Lembrete de sess\u00e3o"
-  | "Altera\u00e7\u00e3o de hor\u00e1rio"
-  | "Solicita\u00e7\u00e3o pendente"
-  | "Confirma\u00e7\u00e3o pendente"
-  | "Comunicado do personal"
-  | "Aviso do sistema";
+export type { StudentNoticeFilter, StudentNoticeItem } from "@/modules/student/notices/dto/student-notice.dto";
 
 export type StudentAppointmentHistoryItem = {
   id: string;
@@ -53,7 +71,7 @@ export type StudentHistoryItem = {
   date: Date;
   startsAt: Date;
   endsAt: Date;
-  finalStatus: "Conclu\u00eddo" | "Registrado";
+  finalStatus: "Conclu\u00EDdo" | "Registrado";
   attendance: StudentAttendanceStatus;
   note: string;
   coach: string;
@@ -80,20 +98,7 @@ export type StudentProgressTrendPoint = {
   id: string;
   label: string;
   value: number;
-};
-
-export type StudentNoticeItem = {
-  id: string;
-  title: string;
-  description: string;
-  details: string;
-  createdAt: Date;
-  kind: StudentNoticeKind;
-  category: StudentNoticeCategory;
-  priority: StudentNoticePriority;
-  isRead: boolean;
-  relatedHref?: string;
-  relatedLabel?: string;
+  rawValue: number;
 };
 
 export type StudentDashboardStat = {
@@ -110,367 +115,423 @@ export type StudentQuickAction = {
   href: string;
 };
 
-function createAppointment(daysFromNow: number, hour: number, minute: number, durationMinutes: number) {
-  const startsAt = set(addDays(new Date(), daysFromNow), {
-    hours: hour,
-    minutes: minute,
-    seconds: 0,
-    milliseconds: 0
-  });
+type StudentContext = Awaited<ReturnType<typeof getStudentContext>>;
+type StudentAppointmentRecord = Awaited<ReturnType<typeof getStudentAppointments>>[number];
 
-  const endsAt = new Date(startsAt.getTime() + durationMinutes * 60 * 1000);
-
-  return { startsAt, endsAt };
+export class StudentProfileError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "StudentProfileError";
+  }
 }
 
-function createPastSession(daysAgo: number, hour: number, minute: number, durationMinutes: number) {
-  const startsAt = set(subDays(new Date(), daysAgo), {
-    hours: hour,
-    minutes: minute,
-    seconds: 0,
-    milliseconds: 0
+async function getStudentContext(studentId: string) {
+  const student = await prisma.student.findUnique({
+    where: { id: studentId },
+    include: {
+      user: {
+        select: {
+          id: true,
+          email: true,
+
+        }
+      },
+      tenant: {
+        select: {
+          id: true,
+          businessName: true,
+          personalName: true,
+          saasSubscription: {
+            select: {
+              planName: true,
+              status: true
+            }
+          }
+        }
+      }
+    }
   });
 
-  const endsAt = new Date(startsAt.getTime() + durationMinutes * 60 * 1000);
+  if (!student) {
+    throw new StudentProfileError("Aluno nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o encontrado.");
+  }
 
-  return { startsAt, endsAt, date: startsAt };
+  return student;
 }
 
-const appointmentTimes = {
-  first: createAppointment(1, 7, 0, 60),
-  second: createAppointment(3, 18, 30, 50),
-  third: createAppointment(5, 8, 0, 55),
-  fourth: createAppointment(7, 19, 0, 50),
-  completed: createAppointment(-2, 7, 0, 60)
-};
+function buildLocationLabel(context: StudentContext) {
+  return context.tenant.businessName;
+}
 
-const historyTimes = {
-  first: createPastSession(2, 7, 0, 60),
-  second: createPastSession(5, 18, 0, 50),
-  third: createPastSession(12, 8, 30, 55),
-  fourth: createPastSession(24, 7, 15, 60),
-  fifth: createPastSession(54, 19, 0, 45)
-};
+function buildFormatLabel() {
+  return "SessÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o com acompanhamento do personal";
+}
 
-const upcomingAppointments: StudentUpcomingAppointment[] = [  {
-    id: "student-appointment-1",
-    title: "Treino de for\u00e7a",
-    ...appointmentTimes.first,
-    coach: "Fabio Trainer",
-    location: "Studio Fitnexis",
-    format: "Presencial",
-    status: "Confirmado",
-    notes: "Chegue 10 minutos antes para aquecimento e revis\u00e3o do bloco da semana.",
-    preparationInstructions: "Use roupa leve, traga sua garrafa e priorize alimenta\u00e7\u00e3o leve at\u00e9 90 minutos antes da sess\u00e3o.",
-    history: [
-      { id: "history-1-1", status: "Criado", occurredAt: addDays(new Date(), -4), description: "Sess\u00e3o criada pelo personal na agenda do aluno." },
-      { id: "history-1-2", status: "Agendado", occurredAt: addDays(new Date(), -3), description: "Hor\u00e1rio reservado com foco no bloco de for\u00e7a da semana." },
-      { id: "history-1-3", status: "Confirmado", occurredAt: addDays(new Date(), -1), description: "Presen\u00e7a confirmada para a sess\u00e3o de amanh\u00e3." }
-    ]
-  },
-  {
-    id: "student-appointment-2",
-    title: "Sess\u00e3o de mobilidade",
-    ...appointmentTimes.second,
-    coach: "Fabio Trainer",
-    location: "Atendimento online",
-    format: "Online",
-    status: "Pendente",
-    notes: "Leve el\u00e1stico e tapete para a sess\u00e3o guiada por v\u00eddeo.",
-    preparationInstructions: "Deixe o ambiente livre e o link da chamada acess\u00edvel alguns minutos antes do hor\u00e1rio.",
-    history: [
-      { id: "history-2-1", status: "Criado", occurredAt: addDays(new Date(), -2), description: "Sess\u00e3o aberta na agenda como complemento do ciclo atual." },
-      { id: "history-2-2", status: "Pendente", occurredAt: addDays(new Date(), -1), description: "Aguardando sua confirma\u00e7\u00e3o de presen\u00e7a." }
-    ]
-  },
-  {
-    id: "student-appointment-3",
-    title: "Avalia\u00e7\u00e3o de performance",
-    ...appointmentTimes.third,
-    coach: "Fabio Trainer",
-    location: "Studio Fitnexis",
-    format: "Presencial",
-    status: "Agendado",
-    notes: "Sess\u00e3o focada em revis\u00e3o t\u00e9cnica e ajustes de execu\u00e7\u00e3o.",
-    preparationInstructions: "Traga seu t\u00eanis de treino habitual e esteja preparado para registros de v\u00eddeo curtos.",
-    history: [
-      { id: "history-3-1", status: "Criado", occurredAt: addDays(new Date(), -1), description: "Avalia\u00e7\u00e3o inserida na agenda para o pr\u00f3ximo bloco." },
-      { id: "history-3-2", status: "Agendado", occurredAt: new Date(), description: "Sess\u00e3o aguardando confirma\u00e7\u00e3o do aluno." }
-    ]
-  },
-  {
-    id: "student-appointment-4",
-    title: "Treino cardiorrespirat\u00f3rio",
-    ...appointmentTimes.fourth,
-    coach: "Fabio Trainer",
-    location: "Studio Fitnexis",
-    format: "Presencial",
-    status: "Reagendamento solicitado",
-    notes: "Sua solicita\u00e7\u00e3o foi registrada e depende da confirma\u00e7\u00e3o do personal.",
-    preparationInstructions: "Aguarde a valida\u00e7\u00e3o do novo hor\u00e1rio antes de reorganizar sua rotina.",
-    history: [
-      { id: "history-4-1", status: "Agendado", occurredAt: addDays(new Date(), -3), description: "Sess\u00e3o reservada inicialmente para quarta-feira." },
-      { id: "history-4-2", status: "Reagendamento solicitado", occurredAt: addDays(new Date(), -1), description: "Pedido de mudan\u00e7a enviado e aguardando retorno do personal." }
-    ]
-  },
-  {
-    id: "student-appointment-5",
-    title: "Treino de membros inferiores",
-    ...appointmentTimes.completed,
-    coach: "Fabio Trainer",
-    location: "Studio Fitnexis",
-    format: "Presencial",
-    status: "Conclu\u00eddo",
-    notes: "Sess\u00e3o finalizada com registro de evolu\u00e7\u00e3o nas cargas.",
-    preparationInstructions: "Sess\u00e3o j\u00e1 realizada.",
-    history: [
-      { id: "history-5-1", status: "Agendado", occurredAt: addDays(new Date(), -5), description: "Sess\u00e3o programada para o bloco anterior." },
-      { id: "history-5-2", status: "Confirmado", occurredAt: addDays(new Date(), -3), description: "Presen\u00e7a confirmada pelo aluno." },
-      { id: "history-5-3", status: "Conclu\u00eddo", occurredAt: addDays(new Date(), -2), description: "Treino conclu\u00eddo com anota\u00e7\u00f5es registradas no acompanhamento." }
-    ]
+function mapStudentVisibleStatus(
+  appointmentStatus: AppointmentStatus,
+  responseStatus: StudentAppointmentResponseStatus
+): StudentAppointmentStatus {
+  if (appointmentStatus === AppointmentStatus.COMPLETED) return "Conclu\u00EDdo";
+  if (appointmentStatus === AppointmentStatus.CANCELED || appointmentStatus === AppointmentStatus.MISSED) {
+    return "Cancelado";
   }
-];
 
-const historyItems: StudentHistoryItem[] = [
-  {
-    id: "student-history-1",
-    title: "Treino de membros inferiores",
-    category: "For\u00e7a",
-    ...historyTimes.first,
-    finalStatus: "Conclu\u00eddo",
-    attendance: "Presente",
-    note: "Boa execu\u00e7\u00e3o e evolu\u00e7\u00e3o nas cargas durante o bloco principal.",
-    coach: "Fabio Trainer",
-    location: "Studio Fitnexis",
-    insights: ["Cargas evolu\u00edram de forma consistente.", "Execu\u00e7\u00e3o t\u00e9cnica mantida em todas as s\u00e9ries."]
-  },
-  {
-    id: "student-history-2",
-    title: "Treino metab\u00f3lico",
-    category: "Condicionamento",
-    ...historyTimes.second,
-    finalStatus: "Conclu\u00eddo",
-    attendance: "Presente",
-    note: "Treino ajustado para condicionamento com boa resposta durante a sess\u00e3o.",
-    coach: "Fabio Trainer",
-    location: "Atendimento online",
-    insights: ["Boa adapta\u00e7\u00e3o ao formato remoto.", "Ritmo mantido at\u00e9 o final da sess\u00e3o."]
-  },
-  {
-    id: "student-history-3",
-    title: "Avalia\u00e7\u00e3o f\u00edsica inicial",
-    category: "Avalia\u00e7\u00e3o",
-    ...historyTimes.third,
-    finalStatus: "Registrado",
-    attendance: "Presente",
-    note: "Medidas iniciais registradas para acompanhar a evolu\u00e7\u00e3o do pr\u00f3ximo ciclo.",
-    coach: "Fabio Trainer",
-    location: "Studio Fitnexis",
-    insights: ["Base inicial documentada.", "Foco definido para o pr\u00f3ximo per\u00edodo."]
-  },
-  {
-    id: "student-history-4",
-    title: "Sess\u00e3o de mobilidade",
-    category: "Mobilidade",
-    ...historyTimes.fourth,
-    finalStatus: "Registrado",
-    attendance: "Ausente justificado",
-    note: "Sess\u00e3o remarcada ap\u00f3s aviso pr\u00e9vio do aluno, sem preju\u00edzo do planejamento.",
-    coach: "Fabio Trainer",
-    location: "Atendimento online",
-    insights: ["Aus\u00eancia comunicada com anteced\u00eancia.", "Reorganiza\u00e7\u00e3o feita no mesmo ciclo."]
-  },
-  {
-    id: "student-history-5",
-    title: "Treino cardiorrespirat\u00f3rio",
-    category: "Cardio",
-    ...historyTimes.fifth,
-    finalStatus: "Conclu\u00eddo",
-    attendance: "Presente",
-    note: "Sess\u00e3o conclu\u00edda com boa consist\u00eancia e controle de intensidade.",
-    coach: "Fabio Trainer",
-    location: "Studio Fitnexis",
-    insights: ["Boa resposta cardiovascular.", "Manuten\u00e7\u00e3o de ritmo acima da m\u00e9dia anterior."]
+  if (responseStatus === StudentAppointmentResponseStatus.CONFIRMED) return "Confirmado";
+  if (responseStatus === StudentAppointmentResponseStatus.RESCHEDULE_REQUESTED) {
+    return "Reagendamento solicitado";
   }
-];
+  if (responseStatus === StudentAppointmentResponseStatus.CANCELED) return "Cancelado";
 
-const progressItems: StudentProgressItem[] = [
-  {
-    id: "student-progress-1",
-    recordedAt: addDays(new Date(), -21),
-    title: "Peso corporal",
-    value: "65,1 kg",
-    note: "Ponto de compara\u00e7\u00e3o do in\u00edcio do ciclo atual."
-  },
-  {
-    id: "student-progress-2",
-    recordedAt: addDays(new Date(), -14),
-    title: "Percentual de gordura",
-    value: "21,5%",
-    note: "Leve redu\u00e7\u00e3o desde a primeira avalia\u00e7\u00e3o."
-  },
-  {
-    id: "student-progress-3",
-    recordedAt: addDays(new Date(), -4),
-    title: "Carga no agachamento",
-    value: "+10%",
-    note: "Evolu\u00e7\u00e3o consistente nas \u00faltimas semanas."
-  },
-  {
-    id: "student-progress-4",
-    recordedAt: addDays(new Date(), -1),
-    title: "Peso corporal",
-    value: "64,2 kg",
-    note: "Est\u00e1vel em rela\u00e7\u00e3o ao \u00faltimo ciclo, com boa consist\u00eancia de rotina."
-  }
-];
+  return "Pendente";
+}
 
-const notices: StudentNoticeItem[] = [
-  {
-    id: "student-notice-1",
-    title: "Presen\u00e7a aguardando confirma\u00e7\u00e3o",
-    description: "Sua sess\u00e3o de mobilidade de ter\u00e7a-feira ainda depende da sua confirma\u00e7\u00e3o.",
-    details:
-      "Confirme sua presen\u00e7a para manter o hor\u00e1rio reservado. Caso precise ajustar a agenda, solicite o reagendamento com anteced\u00eancia para facilitar a reorganiza\u00e7\u00e3o do planejamento.",
-    createdAt: addDays(new Date(), -1),
-    kind: "warning",
-    category: "Confirma\u00e7\u00e3o pendente",
-    priority: "high",
-    isRead: false,
-    relatedHref: "/student/agenda",
-    relatedLabel: "Ir para minha agenda"
-  },
-  {
-    id: "student-notice-2",
-    title: "Solicita\u00e7\u00e3o de reagendamento registrada",
-    description: "Seu pedido de mudan\u00e7a de hor\u00e1rio foi enviado e est\u00e1 aguardando valida\u00e7\u00e3o do personal.",
-    details:
-      "Assim que houver retorno com novo hor\u00e1rio ou orienta\u00e7\u00e3o adicional, este aviso ser\u00e1 atualizado. At\u00e9 l\u00e1, mantenha seu hor\u00e1rio original em observa\u00e7\u00e3o para evitar desencontros.",
-    createdAt: addDays(new Date(), -2),
-    kind: "info",
-    category: "Solicita\u00e7\u00e3o pendente",
-    priority: "medium",
-    isRead: false,
-    relatedHref: "/student/agenda",
-    relatedLabel: "Acompanhar solicita\u00e7\u00e3o"
-  },
-  {
-    id: "student-notice-3",
-    title: "Ajuste no hor\u00e1rio do pr\u00f3ximo treino",
-    description: "O treino de for\u00e7a foi antecipado em 15 minutos para melhorar a organiza\u00e7\u00e3o do atendimento.",
-    details:
-      "Seu atendimento presencial acontecer\u00e1 \u00e0s 06h45 no Studio Fitnexis. Se esse ajuste impactar sua rotina, utilize a op\u00e7\u00e3o de solicita\u00e7\u00e3o na agenda para conversar com o personal antes da sess\u00e3o.",
-    createdAt: addDays(new Date(), -3),
-    kind: "warning",
-    category: "Altera\u00e7\u00e3o de hor\u00e1rio",
-    priority: "high",
-    isRead: true,
-    relatedHref: "/student/agenda",
-    relatedLabel: "Ver sess\u00e3o atualizada"
-  },
-  {
-    id: "student-notice-4",
-    title: "Nova observa\u00e7\u00e3o no seu acompanhamento",
-    description: "Seu personal registrou um coment\u00e1rio sobre sua evolu\u00e7\u00e3o recente no bloco atual.",
-    details:
-      "A observa\u00e7\u00e3o destaca boa consist\u00eancia nas cargas e melhor resposta ao volume de treino das \u00faltimas semanas. Voc\u00ea pode revisar esse contexto na \u00e1rea de evolu\u00e7\u00e3o.",
-    createdAt: addDays(new Date(), -4),
-    kind: "success",
-    category: "Comunicado do personal",
-    priority: "medium",
-    isRead: true,
-    relatedHref: "/student/progress",
-    relatedLabel: "Ver evolu\u00e7\u00e3o"
-  },
-  {
-    id: "student-notice-5",
-    title: "Lembrete do pr\u00f3ximo atendimento",
-    description: "Leve sua garrafa e chegue alguns minutos antes para o aquecimento orientado.",
-    details:
-      "Esse lembrete ajuda a manter o fluxo da sess\u00e3o e garantir que o tempo seja aproveitado com mais qualidade. Caso o formato mude para online, voc\u00ea ser\u00e1 avisado por aqui.",
-    createdAt: addDays(new Date(), -5),
-    kind: "info",
-    category: "Lembrete de sess\u00e3o",
-    priority: "low",
-    isRead: false,
-    relatedHref: "/student/agenda",
-    relatedLabel: "Preparar sess\u00e3o"
-  },
-  {
-    id: "student-notice-6",
-    title: "Atualiza\u00e7\u00e3o importante da plataforma",
-    description: "O Fitnexis est\u00e1 organizando seus avisos e confirma\u00e7\u00f5es em um fluxo mais claro para o seu acompanhamento.",
-    details:
-      "A proposta \u00e9 reduzir depend\u00eancia de mensagens externas e centralizar as comunica\u00e7\u00f5es mais relevantes dentro do seu painel, com hist\u00f3rico simples e a\u00e7\u00f5es r\u00e1pidas.",
-    createdAt: addDays(new Date(), -6),
-    kind: "info",
-    category: "Aviso do sistema",
-    priority: "low",
-    isRead: true
+function mapAttendanceStatus(
+  appointmentStatus: AppointmentStatus,
+  responseStatus: StudentAppointmentResponseStatus
+): StudentAttendanceStatus {
+  if (appointmentStatus === AppointmentStatus.COMPLETED) return "Presente";
+  if (responseStatus === StudentAppointmentResponseStatus.CONFIRMED) return "Presen\u00E7a confirmada";
+  return "Ausente justificado";
+}
+
+function buildAppointmentHistory(appointment: StudentAppointmentRecord): StudentAppointmentHistoryItem[] {
+  const items: StudentAppointmentHistoryItem[] = [
+    {
+      id: `${appointment.id}-created`,
+      status: "Criado",
+      occurredAt: appointment.createdAt,
+      description: "SessÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o adicionada ao seu acompanhamento pelo personal."
+    }
+  ];
+
+  if (appointment.studentRespondedAt) {
+    const responseStatus = mapStudentVisibleStatus(appointment.status, appointment.studentResponseStatus);
+
+    items.push({
+      id: `${appointment.id}-student-response`,
+      status: responseStatus,
+      occurredAt: appointment.studentRespondedAt,
+      description:
+        appointment.studentResponseNote ??
+        (responseStatus === "Confirmado"
+          ? "VocÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âª confirmou presenÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§a nesta sessÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o."
+          : responseStatus === "Reagendamento solicitado"
+            ? "VocÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âª solicitou reagendamento e o personal precisa analisar esse pedido."
+            : "VocÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âª registrou uma solicitaÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o de cancelamento para esta sessÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o.")
+    });
   }
-];
+
+  items.push({
+    id: `${appointment.id}-updated`,
+    status: mapStudentVisibleStatus(appointment.status, appointment.studentResponseStatus),
+    occurredAt: appointment.updatedAt,
+    description:
+      appointment.status === AppointmentStatus.COMPLETED
+        ? "SessÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o concluÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­da e registrada no histÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³rico do seu acompanhamento."
+        : appointment.status === AppointmentStatus.CANCELED || appointment.status === AppointmentStatus.MISSED
+          ? "SessÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o encerrada ou cancelada no planejamento atual."
+          : "SessÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o mantida na agenda do seu acompanhamento."
+  });
+
+  return items.sort((a, b) => a.occurredAt.getTime() - b.occurredAt.getTime());
+}
+
+async function getStudentAppointments(studentId: string) {
+  return prisma.appointment.findMany({
+    where: {
+      studentId
+    },
+    orderBy: {
+      startsAt: "asc"
+    }
+  });
+}
+
+async function getStudentPayments(studentId: string) {
+  return prisma.payment.findMany({
+    where: {
+      studentId
+    },
+    orderBy: [{ dueDate: "asc" }, { createdAt: "desc" }]
+  });
+}
+
+async function getStudentProgressRecords(studentId: string) {
+  return prisma.progressRecord.findMany({
+    where: {
+      studentId
+    },
+    orderBy: {
+      recordedAt: "desc"
+    }
+  });
+}
 
 export const StudentPortalService = {
-  getDashboardOverview() {
-    const nextSession = upcomingAppointments.find((item) =>
-      ["Agendado", "Confirmado", "Pendente", "Reagendamento solicitado"].includes(item.status)
-    ) ?? upcomingAppointments[0];
+  async getDashboardOverview(studentId: string) {
+    const now = new Date();
+    const weekStart = startOfWeek(now, { weekStartsOn: 1 });
+    const monthStart = startOfMonth(now);
+    const monthEnd = endOfMonth(now);
+
+    const [context, appointments, payments, progressRecords, notices] = await Promise.all([
+      getStudentContext(studentId),
+      getStudentAppointments(studentId),
+      getStudentPayments(studentId),
+      getStudentProgressRecords(studentId),
+      StudentNoticeService.listByStudent(studentId)
+    ]);
+
+    const nextSessionRecord = appointments.find(
+      (appointment) =>
+        appointment.startsAt >= now &&
+        appointment.status === AppointmentStatus.SCHEDULED
+    );
+
+    const upcomingAppointments = appointments
+      .filter((appointment) => appointment.startsAt >= now)
+      .slice(0, 4)
+      .map((appointment) => ({
+        id: appointment.id,
+        title: appointment.title,
+        startsAt: appointment.startsAt,
+        endsAt: appointment.endsAt,
+        coach: context.tenant.personalName,
+        location: buildLocationLabel(context),
+        format: buildFormatLabel(),
+        status: mapStudentVisibleStatus(appointment.status, appointment.studentResponseStatus),
+        notes: appointment.notes ?? undefined,
+        preparationInstructions: appointment.notes ?? undefined,
+        history: buildAppointmentHistory(appointment)
+      }));
+
+    const nextSession = nextSessionRecord
+      ? {
+          id: nextSessionRecord.id,
+          title: nextSessionRecord.title,
+          startsAt: nextSessionRecord.startsAt,
+          endsAt: nextSessionRecord.endsAt,
+          coach: context.tenant.personalName,
+          location: buildLocationLabel(context),
+          format: buildFormatLabel(),
+          status: mapStudentVisibleStatus(
+            nextSessionRecord.status,
+            nextSessionRecord.studentResponseStatus
+          ),
+          notes: nextSessionRecord.notes ?? undefined,
+          preparationInstructions: nextSessionRecord.notes ?? undefined,
+          history: buildAppointmentHistory(nextSessionRecord)
+        }
+      : null;
+
+    const sessionsThisWeek = appointments.filter(
+      (appointment) => appointment.startsAt >= weekStart && appointment.startsAt <= addDays(weekStart, 6)
+    ).length;
+
+    const completedThisWeek = appointments.filter(
+      (appointment) => appointment.status === AppointmentStatus.COMPLETED && appointment.startsAt >= weekStart
+    ).length;
+
+    const pendingPayments = payments.filter(
+      (payment) =>
+        payment.status === PaymentStatus.PENDING ||
+        payment.status === PaymentStatus.OVERDUE ||
+        (payment.status !== PaymentStatus.PAID && payment.status !== PaymentStatus.CANCELED && payment.dueDate < now)
+    );
+
+    const sessionsThisMonth = appointments.filter(
+      (appointment) =>
+        appointment.status === AppointmentStatus.COMPLETED &&
+        appointment.startsAt >= monthStart &&
+        appointment.startsAt <= monthEnd
+    ).length;
+
+    const sessionsLastFourWeeks = appointments.filter(
+      (appointment) =>
+        appointment.status === AppointmentStatus.COMPLETED &&
+        appointment.startsAt >= subDays(now, 28)
+    ).length;
+
+    const frequencyPerWeek = (sessionsLastFourWeeks / 4).toFixed(1).replace(".", ",");
+    const latestProgress = progressRecords[0] ?? null;
+    const latestPayment = payments.find((payment) => payment.status === PaymentStatus.PAID) ?? payments[0] ?? null;
 
     return {
       greetingMessage:
-        "Seu acompanhamento est\u00e1 organizado para que voc\u00ea visualize agenda, avisos e evolu\u00e7\u00e3o com clareza.",
+        "Seu painel reflete os dados reais lanÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ados pelo seu personal, com agenda, evoluÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o e financeiro organizados no mesmo ambiente.",
       nextSession,
       weeklySummary: [
-        { id: "scheduled", label: "Sess\u00f5es agendadas", value: "3", description: "Compromissos previstos para sua semana atual." },
-        { id: "completed", label: "Sess\u00f5es conclu\u00eddas", value: "2", description: "Treinos finalizados com registro recente." },
-        { id: "pending", label: "Pend\u00eancias de confirma\u00e7\u00e3o", value: "1", description: "H\u00e1 um atendimento aguardando sua confirma\u00e7\u00e3o." },
-        { id: "alerts", label: "Avisos importantes", value: "2", description: "Atualiza\u00e7\u00f5es que merecem sua aten\u00e7\u00e3o hoje." }
+        {
+          id: "scheduled",
+          label: "SessÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµes agendadas",
+          value: String(sessionsThisWeek),
+          description: "Compromissos previstos para a sua semana atual."
+        },
+        {
+          id: "completed",
+          label: "SessÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµes concluÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­das",
+          value: String(completedThisWeek),
+          description: "Treinos finalizados recentemente no seu acompanhamento."
+        },
+        {
+          id: "payments",
+          label: "Pagamentos pendentes",
+          value: String(pendingPayments.length),
+          description: "Registros financeiros vinculados ao seu plano atual."
+        },
+        {
+          id: "alerts",
+          label: "Avisos importantes",
+          value: String(notices.filter((notice) => notice.priority !== "low").length),
+          description: "AtualizaÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµes que merecem sua atenÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o hoje."
+        }
       ] satisfies StudentDashboardStat[],
       quickActions: [
-        { id: "confirm-presence", label: "Confirmar presen\u00e7a", description: "Valide sua pr\u00f3xima sess\u00e3o diretamente pela agenda.", href: "/student/agenda" },
-        { id: "full-agenda", label: "Ver agenda completa", description: "Acesse seus pr\u00f3ximos hor\u00e1rios e hist\u00f3rico de sess\u00f5es.", href: "/student/agenda" },
-        { id: "reschedule", label: "Solicitar reagendamento", description: "Consulte os avisos e alinhe mudan\u00e7as com anteced\u00eancia.", href: "/student/notices" },
-        { id: "profile", label: "Acessar perfil", description: "Revise seus dados e foco atual de acompanhamento.", href: "/student/profile" }
+        {
+          id: "full-agenda",
+          label: "Ver agenda completa",
+          description: "Acesse seus prÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³ximos horÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡rios e o histÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³rico de sessÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµes.",
+          href: "/student/agenda"
+        },
+        {
+          id: "progress",
+          label: "Acompanhar evoluÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o",
+          description: "Consulte registros recentes e indicadores do seu progresso.",
+          href: "/student/progress"
+        },
+        {
+          id: "notices",
+          label: "Ver avisos",
+          description: "Centralize lembretes, mudanÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§as e atualizaÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµes do acompanhamento.",
+          href: "/student/notices"
+        },
+        {
+          id: "profile",
+          label: "Acessar perfil",
+          description: "Revise seus dados e mantenha seu cadastro atualizado.",
+          href: "/student/profile"
+        }
       ] satisfies StudentQuickAction[],
       notices: notices.slice(0, 3),
       progressSummary: [
-        { id: "month-sessions", label: "Sess\u00f5es no m\u00eas", value: "8", description: "Treinos realizados ou confirmados no ciclo atual." },
-        { id: "attendance", label: "Frequ\u00eancia", value: "92%", description: "Regularidade m\u00e9dia de presen\u00e7a nas \u00faltimas semanas." },
-        { id: "evolution", label: "Indicador de evolu\u00e7\u00e3o", value: "Consistente", description: "Seu acompanhamento mostra progresso cont\u00ednuo no per\u00edodo." }
+        {
+          id: "month-sessions",
+          label: "SessÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµes no mÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âªs",
+          value: String(sessionsThisMonth),
+          description: "Atendimentos concluÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­dos no ciclo atual."
+        },
+        {
+          id: "attendance",
+          label: "FrequÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âªncia recente",
+          value: `${frequencyPerWeek}x por semana`,
+          description: "MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©dia das ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âºltimas quatro semanas com base nas sessÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµes concluÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­das."
+        },
+        {
+          id: "evolution",
+          label: "ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ltimo registro",
+          value: latestProgress
+            ? format(latestProgress.recordedAt, "dd/MM", { locale: ptBR })
+            : "Sem registros",
+          description: latestProgress
+            ? "Seu progresso jÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ tem um histÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³rico real no sistema."
+            : "Ainda nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o hÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ registros de evoluÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o lanÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ados."
+        }
       ] satisfies StudentDashboardStat[],
-      activePlan: "Acompanhamento Premium",
-      nextSessionLabel: format(nextSession.startsAt, "EEEE, dd 'de' MMMM", { locale: ptBR }),
-      weeklySessions: 3,
-      completedSessions: 18,
-      lastUpdateLabel: format(progressItems[progressItems.length - 1].recordedAt, "dd/MM/yyyy", { locale: ptBR }),
+      activePlan: context.tenant.saasSubscription?.planName ?? "Plano ativo",
+      nextSessionLabel: nextSession
+        ? format(nextSession.startsAt, "EEEE, dd 'de' MMMM", { locale: ptBR })
+        : null,
+      weeklySessions: sessionsThisWeek,
+      completedSessions: sessionsThisMonth,
+      lastUpdateLabel: latestProgress
+        ? format(latestProgress.recordedAt, "dd/MM/yyyy", { locale: ptBR })
+        : format(context.updatedAt, "dd/MM/yyyy", { locale: ptBR }),
       upcomingAppointments,
-      noticesPreview: notices.slice(0, 2)
+      noticesPreview: notices.slice(0, 2),
+      paymentSummary: {
+        pendingCount: pendingPayments.length,
+        latestPaymentStatus: latestPayment ? latestPayment.status : null,
+        latestPaymentDueDate: latestPayment?.dueDate ?? null
+      }
     };
   },
 
-  getAgenda(status?: StudentAppointmentStatus | "Todos") {
+  async getAgenda(studentId: string, status?: StudentAppointmentStatus | "Todos") {
+    const context = await getStudentContext(studentId);
+    const appointments = await getStudentAppointments(studentId);
+
+    const mappedAppointments = appointments.map((appointment) => ({
+      id: appointment.id,
+      title: appointment.title,
+      startsAt: appointment.startsAt,
+      endsAt: appointment.endsAt,
+      coach: context.tenant.personalName,
+      location: buildLocationLabel(context),
+      format: buildFormatLabel(),
+      status: mapStudentVisibleStatus(appointment.status, appointment.studentResponseStatus),
+      notes: appointment.notes ?? undefined,
+      preparationInstructions: appointment.notes ?? undefined,
+      history: buildAppointmentHistory(appointment)
+    }));
+
     if (!status || status === "Todos") {
-      return upcomingAppointments;
+      return mappedAppointments;
     }
 
-    return upcomingAppointments.filter((appointment) => appointment.status === status);
-  },
-
-  getAgendaById(id: string) {
-    return upcomingAppointments.find((appointment) => appointment.id === id) ?? null;
+    return mappedAppointments.filter((appointment) => appointment.status === status);
   },
 
   getAgendaStatusOptions() {
     return ["Todos", ...studentAgendaStatuses] as const;
   },
 
-  getHistory(filters?: {
-    period?: StudentHistoryPeriod;
-    attendance?: StudentHistoryAttendanceFilter;
-  }) {
+  async getHistory(
+    studentId: string,
+    filters?: {
+      period?: StudentHistoryPeriod;
+      attendance?: StudentHistoryAttendanceFilter;
+    }
+  ) {
     const now = new Date();
+    const context = await getStudentContext(studentId);
+    const appointments = await prisma.appointment.findMany({
+      where: {
+        studentId,
+        OR: [
+          { startsAt: { lt: now } },
+          { status: AppointmentStatus.COMPLETED },
+          { status: AppointmentStatus.CANCELED },
+          { status: AppointmentStatus.MISSED }
+        ]
+      },
+      orderBy: {
+        startsAt: "desc"
+      }
+    });
 
-    return historyItems.filter((item) => {
+    const items = appointments.map((appointment): StudentHistoryItem => {
+      const attendance = mapAttendanceStatus(appointment.status, appointment.studentResponseStatus);
+
+      return {
+        id: appointment.id,
+        title: appointment.title,
+        category: "Sess\u00E3o",
+        date: appointment.startsAt,
+        startsAt: appointment.startsAt,
+        endsAt: appointment.endsAt,
+        finalStatus: appointment.status === AppointmentStatus.COMPLETED ? "Conclu\u00EDdo" : "Registrado",
+        attendance,
+        note: appointment.notes ?? "Sess\u00E3o registrada no hist\u00F3rico do acompanhamento.",
+        coach: context.tenant.personalName,
+        location: buildLocationLabel(context),
+        insights: [
+          `Status final registrado: ${mapStudentVisibleStatus(appointment.status, appointment.studentResponseStatus)}.`,
+          `Atendimento vinculado ao acompanhamento de ${context.tenant.personalName}.`
+        ]
+      };
+    });
+
+    return items.filter((item) => {
       const periodMatches =
         !filters?.period ||
         filters.period === "all" ||
@@ -490,87 +551,250 @@ export const StudentPortalService = {
   getHistoryFilterOptions() {
     return {
       period: [
-        { value: "all", label: "Todo o hist\u00f3rico" },
-        { value: "30d", label: "\u00daltimos 30 dias" },
-        { value: "90d", label: "\u00daltimos 90 dias" }
+        { value: "all", label: "Todo o histÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³rico" },
+        { value: "30d", label: "ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ltimos 30 dias" },
+        { value: "90d", label: "ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ltimos 90 dias" }
       ] as const,
       attendance: [
-        { value: "all", label: "Todas as presen\u00e7as" },
-        { value: "present", label: "Sess\u00f5es com presen\u00e7a" },
-        { value: "absent", label: "Aus\u00eancias registradas" }
+        { value: "all", label: "Todas as presenÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§as" },
+        { value: "present", label: "SessÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµes com presenÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§a" },
+        { value: "absent", label: "AusÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âªncias registradas" }
       ] as const
     };
   },
 
-  getProgress() {
-    return progressItems;
-  },
+  async getProgressOverview(studentId: string) {
+    const now = new Date();
+    const context = await getStudentContext(studentId);
+    const [records, appointments] = await Promise.all([
+      getStudentProgressRecords(studentId),
+      prisma.appointment.findMany({
+        where: { studentId },
+        orderBy: { startsAt: "desc" }
+      })
+    ]);
 
-  getProgressOverview() {
+    const sessionsThisMonth = appointments.filter(
+      (appointment) =>
+        appointment.status === AppointmentStatus.COMPLETED &&
+        appointment.startsAt >= startOfMonth(now)
+    ).length;
+
+    const currentWindow = appointments.filter(
+      (appointment) =>
+        appointment.status === AppointmentStatus.COMPLETED &&
+        appointment.startsAt >= subDays(now, 30)
+    ).length;
+
+    const previousWindow = appointments.filter(
+      (appointment) =>
+        appointment.status === AppointmentStatus.COMPLETED &&
+        appointment.startsAt >= subDays(now, 60) &&
+        appointment.startsAt < subDays(now, 30)
+    ).length;
+
+    const comparison = currentWindow - previousWindow;
+
+    const weeklyBuckets = [3, 2, 1, 0].map((offset) => {
+      const from = startOfWeek(subWeeks(now, offset), { weekStartsOn: 1 });
+      const to = addDays(from, 6);
+      const count = appointments.filter(
+        (appointment) =>
+          appointment.status === AppointmentStatus.COMPLETED &&
+          appointment.startsAt >= from &&
+          appointment.startsAt <= to
+      ).length;
+
+      return {
+        id: `week-${offset}`,
+        label: `Sem ${4 - offset}`,
+        rawValue: count
+      };
+    });
+
+    const maxBucket = Math.max(...weeklyBuckets.map((bucket) => bucket.rawValue), 1);
+
+    const trend = weeklyBuckets.map((bucket) => ({
+      id: bucket.id,
+      label: bucket.label,
+      rawValue: bucket.rawValue,
+      value: Math.max(18, Math.round((bucket.rawValue / maxBucket) * 100))
+    }));
+
+    const latestRecord = records[0] ?? null;
+    const previousRecord = records[1] ?? null;
+    const notes = latestRecord
+      ? [latestRecord.notes ?? "HÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ um registro recente de evoluÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o disponÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­vel no seu acompanhamento."]
+      : ["Seu personal ainda nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o lanÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ou registros de evoluÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o neste perfil."];
+
+    if (previousRecord && latestRecord?.weight && previousRecord.weight) {
+      notes.push(
+        `Comparativo recente de peso: ${Number(latestRecord.weight).toFixed(1).replace(".", ",")} kg agora contra ${Number(previousRecord.weight).toFixed(1).replace(".", ",")} kg no registro anterior.`
+      );
+    }
+
     return {
       metrics: [
-        { id: "sessions-month", label: "Sess\u00f5es realizadas no m\u00eas", value: "8", description: "Treinos registrados no ciclo atual com acompanhamento ativo." },
-        { id: "weekly-frequency", label: "Frequ\u00eancia semanal", value: "3x por semana", description: "M\u00e9dia recente de comparecimento nas \u00faltimas semanas." },
-        { id: "comparison", label: "Comparativo recente", value: "+1 sess\u00e3o", description: "Em rela\u00e7\u00e3o ao per\u00edodo anterior, sua rotina ganhou mais const\u00e2ncia." }
+        {
+          id: "sessions-month",
+          label: "SessÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµes realizadas no mÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âªs",
+          value: String(sessionsThisMonth),
+          description: "Treinos concluÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­dos no mÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âªs atual com base na agenda real."
+        },
+        {
+          id: "weekly-frequency",
+          label: "FrequÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âªncia semanal",
+          value: `${(currentWindow / 4).toFixed(1).replace(".", ",")}x por semana`,
+          description: "MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©dia das ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âºltimas quatro semanas com base nas sessÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµes concluÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­das."
+        },
+        {
+          id: "comparison",
+          label: "Comparativo simples do perÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­odo",
+          value:
+            comparison === 0
+              ? "EstÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡vel"
+              : `${comparison > 0 ? "+" : ""}${comparison} sessÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o${Math.abs(comparison) === 1 ? "" : "ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµes"}`,
+          description: "ComparaÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o entre os ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âºltimos 30 dias e o perÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­odo imediatamente anterior."
+        }
       ] satisfies StudentProgressMetric[],
-      trend: [
-        { id: "week-1", label: "Sem 1", value: 55 },
-        { id: "week-2", label: "Sem 2", value: 68 },
-        { id: "week-3", label: "Sem 3", value: 74 },
-        { id: "week-4", label: "Sem 4", value: 82 }
-      ] satisfies StudentProgressTrendPoint[],
+      trend,
       highlights: [
-        "Sua frequ\u00eancia est\u00e1 est\u00e1vel e acima do ciclo anterior.",
-        "As sess\u00f5es recentes mostram boa continuidade no plano atual.",
-        "O acompanhamento segue com registros suficientes para an\u00e1lises mais detalhadas no futuro."
+        `Registros reais do acompanhamento de ${context.tenant.personalName}.`,
+        latestRecord
+          ? `ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ltima atualizaÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o registrada em ${format(latestRecord.recordedAt, "dd/MM/yyyy", { locale: ptBR })}.`
+          : "Ainda nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o existem registros de evoluÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o lanÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ados."
       ],
-      notes: [
-        "Seu personal registrou evolu\u00e7\u00e3o consistente nas \u00faltimas semanas.",
-        "A tend\u00eancia do per\u00edodo indica rotina mais previs\u00edvel e melhor ader\u00eancia ao planejamento."
-      ],
-      records: progressItems
+      notes,
+      records: records.map((record) => ({
+        id: record.id,
+        recordedAt: record.recordedAt,
+        title:
+          record.weight && record.bodyFat
+            ? "Peso e composiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o"
+            : record.weight
+              ? "Peso corporal"
+              : record.bodyFat
+                ? "Percentual de gordura"
+                : "Registro de evoluÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o",
+        value:
+          record.weight && record.bodyFat
+            ? `${Number(record.weight).toFixed(1).replace(".", ",")} kg ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ ${Number(record.bodyFat).toFixed(1).replace(".", ",")}%`
+            : record.weight
+              ? `${Number(record.weight).toFixed(1).replace(".", ",")} kg`
+              : record.bodyFat
+                ? `${Number(record.bodyFat).toFixed(1).replace(".", ",")}%`
+                : format(record.recordedAt, "dd/MM/yyyy", { locale: ptBR }),
+        note: record.notes ?? "Registro salvo no histÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³rico do acompanhamento."
+      }))
     };
   },
 
-  getNotices(filter: StudentNoticeFilter = "all") {
-    if (filter === "unread") {
-      return notices.filter((notice) => !notice.isRead);
-    }
-
-    if (filter === "high-priority") {
-      return notices.filter((notice) => notice.priority === "high");
-    }
-
-    return notices;
+  async getNotices(studentId: string, filter: StudentNoticeFilter = "all") {
+    return StudentNoticeService.listByStudent(studentId, filter);
   },
 
   getNoticeFilterOptions() {
     return [
       { value: "all", label: "Todos os avisos" },
-      { value: "unread", label: "N\u00e3o lidos" },
+      { value: "unread", label: "NÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o lidos" },
       { value: "high-priority", label: "Prioridade alta" }
     ] as const;
   },
 
-  getProfile(user: { name: string; email: string }) {
+  async getProfile(studentId: string) {
+    const context = await getStudentContext(studentId);
+    const nextAppointment = await prisma.appointment.findFirst({
+      where: {
+        studentId,
+        startsAt: {
+          gte: new Date()
+        },
+        status: AppointmentStatus.SCHEDULED
+      },
+      orderBy: {
+        startsAt: "asc"
+      }
+    });
+
     return {
       editableProfile: {
-        name: user.name,
-        email: user.email,
-        phone: "(11) 98888-1122",
-        birthDate: "1996-08-14",
-        goal: "Ganhar for\u00e7a com consist\u00eancia e melhorar condicionamento geral.",
-        photoUrl: "",
-        emergencyContact: "Marina Souza - (11) 97777-3344",
-        personalNotes: "Prefiro treinos pela manh\u00e3 e tenho melhor rendimento em sess\u00f5es presenciais."
+        name: context.name,
+        email: context.user?.email ?? context.email ?? "",
+        phone: context.phone ?? "",
+        birthDate: context.birthDate ? context.birthDate.toISOString().slice(0, 10) : "",
+        goal: context.goal ?? "",
+        notes: context.notes ?? ""
       },
       accountSummary: {
-        memberSince: format(addDays(new Date(), -120), "dd/MM/yyyy", { locale: ptBR }),
-        accountStatus: "Conta ativa",
-        coach: "Fabio Trainer",
-        plan: "Acompanhamento Premium",
-        nextCheckIn: format(addDays(new Date(), 7), "dd/MM/yyyy", { locale: ptBR })
+        memberSince: format(context.createdAt, "dd/MM/yyyy", { locale: ptBR }),
+        accountStatus: context.status === StudentStatus.ACTIVE ? "Conta ativa" : "Conta com acesso limitado",
+        coach: context.tenant.personalName,
+        plan: context.tenant.saasSubscription?.planName ?? "Plano ativo",
+        nextCheckIn: nextAppointment
+          ? format(nextAppointment.startsAt, "dd/MM/yyyy", { locale: ptBR })
+          : "Sem sessÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o futura"
       }
     };
+  },
+
+  async updateProfile(studentId: string, input: UpdateStudentProfileInput) {
+    const parsed = UpdateStudentProfileSchema.parse(input);
+    const context = await getStudentContext(studentId);
+
+    await prisma.$transaction(async (tx) => {
+      await tx.student.update({
+        where: { id: context.id },
+        data: {
+          name: parsed.name,
+          phone: parsed.phone || null,
+          birthDate: parsed.birthDate ? new Date(`${parsed.birthDate}T00:00:00`) : null,
+          goal: parsed.goal || null,
+          notes: parsed.notes || null
+        }
+      });
+
+      if (context.user) {
+        await tx.user.update({
+          where: { id: context.user.id },
+          data: {
+            name: parsed.name
+          }
+        });
+      }
+    });
+  },
+
+  async changePassword(studentId: string, input: ChangeStudentPasswordInput) {
+    const parsed = ChangeStudentPasswordSchema.parse(input);
+    const context = await getStudentContext(studentId);
+
+    if (!context.user) {
+      throw new StudentProfileError("Este aluno nÃƒÆ’Ã‚Â£o possui um usuÃƒÆ’Ã‚Â¡rio de acesso vinculado.");
+    }
+
+    const userCredentials = await prisma.user.findUnique({
+      where: { id: context.user.id },
+      select: {
+        passwordHash: true
+      }
+    });
+
+    if (!userCredentials) {
+      throw new StudentProfileError("Usu\u00E1rio de acesso do aluno n\u00E3o encontrado.");
+    }
+
+    const passwordMatches = await PasswordService.compare(parsed.currentPassword, userCredentials.passwordHash);
+    if (!passwordMatches) {
+      throw new StudentProfileError("A senha atual informada estÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ incorreta.");
+    }
+
+    const newPasswordHash = await PasswordService.hash(parsed.newPassword);
+
+    await prisma.user.update({
+      where: { id: context.user.id },
+      data: {
+        passwordHash: newPasswordHash
+      }
+    });
   }
 };

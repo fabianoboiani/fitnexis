@@ -41,7 +41,8 @@ export const AuthService = {
         studentProfile: {
           select: {
             id: true,
-            tenantId: true
+            tenantId: true,
+            portalAccessEnabled: true
           }
         }
       }
@@ -54,6 +55,12 @@ export const AuthService = {
     const passwordMatches = await PasswordService.compare(parsed.data.password, user.passwordHash);
     if (!passwordMatches) {
       return null;
+    }
+
+    if (user.role === UserRole.STUDENT) {
+      if (!user.studentProfile?.id || !user.studentProfile.portalAccessEnabled) {
+        return null;
+      }
     }
 
     return {

@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -97,10 +97,7 @@ export default async function AdminUserDetailsPage({ params }: AdminUserDetailsP
         </div>
 
         <div className="space-y-6">
-          <AdminUserForm
-            initialValues={AdminUserService.getFormValues(user)}
-            onSubmitAction={boundUpdateUserAction}
-          />
+          <AdminUserForm initialValues={AdminUserService.getFormValues(user)} onSubmitAction={boundUpdateUserAction} />
 
           <Card className="border-white/70 bg-white/90 shadow-sm backdrop-blur-sm">
             <CardHeader>

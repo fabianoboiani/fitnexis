@@ -1,16 +1,14 @@
-﻿import NextAuth from "next-auth";
+import NextAuth from "next-auth";
 import { NextResponse } from "next/server";
 import { authConfig } from "@/lib/auth.config";
 import {
-  adminRoutePrefixes,
   getDefaultRouteByRole,
   isAdminRoute,
   isPersonalRoute,
-  isStudentRoute,
-  personalRoutePrefixes,
-  publicRoutes,
-  studentRoutePrefixes
+  isPublicRoute,
+  isStudentRoute
 } from "@/lib/app-routes";
+import { applySecurityHeaders } from "@/lib/security";
 
 const { auth } = NextAuth({
   ...authConfig,
@@ -21,60 +19,82 @@ export default auth((request) => {
   const { pathname } = request.nextUrl;
   const user = request.auth?.user;
 
-  if (publicRoutes.some((route) => pathname === route || pathname.startsWith("/api/auth"))) {
-    return NextResponse.next();
+  if (isPublicRoute(pathname) || pathname.startsWith("/api/auth")) {
+    return applySecurityHeaders(NextResponse.next(), {
+      noStore: pathname.startsWith("/api/auth")
+    });
   }
 
-  if (personalRoutePrefixes.some((route) => pathname.startsWith(route)) && !request.auth) {
+  if (isPersonalRoute(pathname) && !request.auth) {
     const loginUrl = new URL("/login", request.nextUrl.origin);
     loginUrl.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(loginUrl);
+    return applySecurityHeaders(NextResponse.redirect(loginUrl), { noStore: true });
   }
 
-  if (studentRoutePrefixes.some((route) => pathname.startsWith(route)) && !request.auth) {
+  if (isStudentRoute(pathname) && !request.auth) {
     const loginUrl = new URL("/login", request.nextUrl.origin);
     loginUrl.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(loginUrl);
+    return applySecurityHeaders(NextResponse.redirect(loginUrl), { noStore: true });
   }
 
   if (isPersonalRoute(pathname) && user && user.role !== "PERSONAL") {
-    return NextResponse.redirect(new URL(getDefaultRouteByRole(user.role), request.nextUrl.origin));
+    return applySecurityHeaders(
+      NextResponse.redirect(new URL(getDefaultRouteByRole(user.role), request.nextUrl.origin)),
+      { noStore: true }
+    );
   }
 
-  if (adminRoutePrefixes.some((route) => pathname.startsWith(route))) {
+  if (isAdminRoute(pathname)) {
     if (!request.auth) {
       const loginUrl = new URL("/login", request.nextUrl.origin);
       loginUrl.searchParams.set("callbackUrl", pathname);
-      return NextResponse.redirect(loginUrl);
+      return applySecurityHeaders(NextResponse.redirect(loginUrl), { noStore: true });
     }
 
     if (!user || user.role !== "ADMIN") {
       const fallbackRole = user?.role ?? "PERSONAL";
-      return NextResponse.redirect(new URL(getDefaultRouteByRole(fallbackRole), request.nextUrl.origin));
+      return applySecurityHeaders(
+        NextResponse.redirect(new URL(getDefaultRouteByRole(fallbackRole), request.nextUrl.origin)),
+        { noStore: true }
+      );
     }
   }
 
   if (user && pathname === "/no-tenant" && user.role === "ADMIN") {
-    return NextResponse.redirect(new URL("/admin", request.nextUrl.origin));
+    return applySecurityHeaders(NextResponse.redirect(new URL("/admin", request.nextUrl.origin)), {
+      noStore: true
+    });
   }
 
   if (user && pathname === "/no-tenant" && user.role === "PERSONAL" && user.tenantId) {
-    return NextResponse.redirect(new URL("/dashboard", request.nextUrl.origin));
+    return applySecurityHeaders(NextResponse.redirect(new URL("/dashboard", request.nextUrl.origin)), {
+      noStore: true
+    });
   }
 
-  if (user && pathname === "/no-tenant" && user.role === "STUDENT") {
-    return NextResponse.redirect(new URL("/student", request.nextUrl.origin));
+  if (user && pathname === "/no-tenant" && user.role === "STUDENT" && user.studentId) {
+    return applySecurityHeaders(NextResponse.redirect(new URL("/student", request.nextUrl.origin)), {
+      noStore: true
+    });
   }
 
   if (user && isAdminRoute(pathname) && user.role !== "ADMIN") {
-    return NextResponse.redirect(new URL(getDefaultRouteByRole(user.role), request.nextUrl.origin));
+    return applySecurityHeaders(
+      NextResponse.redirect(new URL(getDefaultRouteByRole(user.role), request.nextUrl.origin)),
+      { noStore: true }
+    );
   }
 
   if (user && isStudentRoute(pathname) && user.role !== "STUDENT") {
-    return NextResponse.redirect(new URL(getDefaultRouteByRole(user.role), request.nextUrl.origin));
+    return applySecurityHeaders(
+      NextResponse.redirect(new URL(getDefaultRouteByRole(user.role), request.nextUrl.origin)),
+      { noStore: true }
+    );
   }
 
-  return NextResponse.next();
+  return applySecurityHeaders(NextResponse.next(), {
+    noStore: Boolean(user)
+  });
 });
 
 export const config = {

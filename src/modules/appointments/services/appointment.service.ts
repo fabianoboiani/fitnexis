@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { AppointmentStatus } from "@prisma/client";
+import { AppointmentStatus, StudentAppointmentResponseStatus } from "@prisma/client";
 import type {
   AppointmentDetailsDto,
   AppointmentFormValuesDto,
@@ -59,6 +59,43 @@ function sortUpcomingFirst(appointments: AppointmentListItemDto[]) {
   });
 }
 
+async function ensureNoScheduleConflict(
+  tenantId: string,
+  startsAt: Date,
+  endsAt: Date,
+  excludeId?: string
+) {
+  const conflictingAppointment = await AppointmentRepository.findOverlappingByTenant(
+    tenantId,
+    startsAt,
+    endsAt,
+    excludeId
+  );
+
+  if (!conflictingAppointment) {
+    return;
+  }
+
+  const conflictStart = conflictingAppointment.startsAt.toLocaleString("pt-BR", {
+    dateStyle: "short",
+    timeStyle: "short"
+  });
+  const conflictEnd = conflictingAppointment.endsAt.toLocaleString("pt-BR", {
+    timeStyle: "short"
+  });
+
+  throw new Error(
+    `Já existe um compromisso agendado entre ${conflictStart} e ${conflictEnd} para ${conflictingAppointment.student.name}.`
+  );
+}
+
+export class StudentAppointmentActionError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "StudentAppointmentActionError";
+  }
+}
+
 export const AppointmentService = {
   async listByTenant(
     tenantId: string,
@@ -77,6 +114,9 @@ export const AppointmentService = {
         startsAt: appointment.startsAt,
         endsAt: appointment.endsAt,
         status: appointment.status,
+        studentResponseStatus: appointment.studentResponseStatus,
+        studentRespondedAt: appointment.studentRespondedAt,
+        studentResponseNote: appointment.studentResponseNote,
         notes: appointment.notes
       }))
     );
@@ -97,6 +137,9 @@ export const AppointmentService = {
       startsAt: appointment.startsAt,
       endsAt: appointment.endsAt,
       status: appointment.status,
+      studentResponseStatus: appointment.studentResponseStatus,
+      studentRespondedAt: appointment.studentRespondedAt,
+      studentResponseNote: appointment.studentResponseNote,
       notes: appointment.notes
     };
   },
@@ -106,15 +149,20 @@ export const AppointmentService = {
     const student = await StudentService.getById(tenantId, parsed.studentId);
 
     if (!student) {
-      throw new Error("O aluno informado n?o pertence ao tenant atual.");
+      throw new Error("O aluno informado não pertence ao tenant atual.");
     }
+
+    const startsAt = parseDateTime(parsed.startsAt);
+    const endsAt = parseDateTime(parsed.endsAt);
+
+    await ensureNoScheduleConflict(tenantId, startsAt, endsAt);
 
     return AppointmentRepository.create({
       tenantId,
       studentId: parsed.studentId,
       title: parsed.title,
-      startsAt: parseDateTime(parsed.startsAt),
-      endsAt: parseDateTime(parsed.endsAt),
+      startsAt,
+      endsAt,
       status: parsed.status,
       notes: parsed.notes
     });
@@ -131,16 +179,27 @@ export const AppointmentService = {
     const student = await StudentService.getById(tenantId, parsed.studentId);
 
     if (!student) {
-      throw new Error("O aluno informado n?o pertence ao tenant atual.");
+      throw new Error("O aluno informado não pertence ao tenant atual.");
     }
+
+    const startsAt = parseDateTime(parsed.startsAt);
+    const endsAt = parseDateTime(parsed.endsAt);
+
+    await ensureNoScheduleConflict(tenantId, startsAt, endsAt, id);
 
     await AppointmentRepository.updateByIdAndTenant(id, tenantId, {
       studentId: parsed.studentId,
       title: parsed.title,
-      startsAt: parseDateTime(parsed.startsAt),
-      endsAt: parseDateTime(parsed.endsAt),
+      startsAt,
+      endsAt,
       status: parsed.status,
-      notes: parsed.notes ?? null
+      notes: parsed.notes ?? null,
+      studentResponseStatus:
+        parsed.status === AppointmentStatus.SCHEDULED
+          ? StudentAppointmentResponseStatus.PENDING
+          : existingAppointment.studentResponseStatus,
+      studentRespondedAt: parsed.status === AppointmentStatus.SCHEDULED ? null : existingAppointment.studentRespondedAt,
+      studentResponseNote: parsed.status === AppointmentStatus.SCHEDULED ? null : existingAppointment.studentResponseNote
     });
 
     return AppointmentRepository.findByIdAndTenant(id, tenantId);
@@ -159,7 +218,64 @@ export const AppointmentService = {
       startsAt: appointment.startsAt,
       endsAt: appointment.endsAt,
       status: AppointmentStatus.CANCELED,
-      notes: appointment.notes ?? null
+      notes: appointment.notes ?? null,
+      studentResponseStatus: appointment.studentResponseStatus,
+      studentRespondedAt: appointment.studentRespondedAt,
+      studentResponseNote: appointment.studentResponseNote
+    });
+  },
+
+  async confirmAttendanceByStudent(studentId: string, appointmentId: string) {
+    const appointment = await AppointmentRepository.findByIdAndStudent(appointmentId, studentId);
+
+    if (!appointment) {
+      notFound();
+    }
+
+    if (appointment.status !== AppointmentStatus.SCHEDULED) {
+      throw new StudentAppointmentActionError("Essa sessão não está disponível para confirmação.");
+    }
+
+    await AppointmentRepository.updateStudentResponseByIdAndStudent(appointmentId, studentId, {
+      studentResponseStatus: StudentAppointmentResponseStatus.CONFIRMED,
+      studentRespondedAt: new Date(),
+      studentResponseNote: "Presença confirmada pelo aluno no portal."
+    });
+  },
+
+  async requestRescheduleByStudent(studentId: string, appointmentId: string) {
+    const appointment = await AppointmentRepository.findByIdAndStudent(appointmentId, studentId);
+
+    if (!appointment) {
+      notFound();
+    }
+
+    if (appointment.status !== AppointmentStatus.SCHEDULED) {
+      throw new StudentAppointmentActionError("Essa sessão não aceita solicitação de reagendamento neste momento.");
+    }
+
+    await AppointmentRepository.updateStudentResponseByIdAndStudent(appointmentId, studentId, {
+      studentResponseStatus: StudentAppointmentResponseStatus.RESCHEDULE_REQUESTED,
+      studentRespondedAt: new Date(),
+      studentResponseNote: "Aluno solicitou reagendamento pelo portal."
+    });
+  },
+
+  async requestCancellationByStudent(studentId: string, appointmentId: string) {
+    const appointment = await AppointmentRepository.findByIdAndStudent(appointmentId, studentId);
+
+    if (!appointment) {
+      notFound();
+    }
+
+    if (appointment.status !== AppointmentStatus.SCHEDULED) {
+      throw new StudentAppointmentActionError("Essa sessão não aceita cancelamento neste momento.");
+    }
+
+    await AppointmentRepository.updateStudentResponseByIdAndStudent(appointmentId, studentId, {
+      studentResponseStatus: StudentAppointmentResponseStatus.CANCELED,
+      studentRespondedAt: new Date(),
+      studentResponseNote: "Aluno solicitou cancelamento pelo portal."
     });
   },
 

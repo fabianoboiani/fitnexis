@@ -3,6 +3,15 @@ import { prisma } from "@/lib/db";
 
 type DbClient = PrismaClient | Prisma.TransactionClient;
 
+const studentWithUserSelect = {
+  user: {
+    select: {
+      id: true,
+      email: true
+    }
+  }
+} satisfies Prisma.StudentInclude;
+
 export const StudentRepository = {
   async findManyByTenant(tenantId: string, search?: string) {
     return prisma.student.findMany({
@@ -17,6 +26,7 @@ export const StudentRepository = {
             }
           : {})
       },
+      include: studentWithUserSelect,
       orderBy: [{ createdAt: "desc" }]
     });
   },
@@ -26,7 +36,8 @@ export const StudentRepository = {
       where: {
         id,
         tenantId
-      }
+      },
+      include: studentWithUserSelect
     });
   },
 
@@ -34,7 +45,8 @@ export const StudentRepository = {
     return prisma.student.findFirst({
       where: {
         userId
-      }
+      },
+      include: studentWithUserSelect
     });
   },
 

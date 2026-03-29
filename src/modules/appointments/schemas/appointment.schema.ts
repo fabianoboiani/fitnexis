@@ -1,4 +1,4 @@
-import { AppointmentStatus } from "@prisma/client";
+﻿import { AppointmentStatus } from "@prisma/client";
 import { z } from "zod";
 
 const optionalText = z
@@ -10,7 +10,7 @@ const optionalText = z
 export const AppointmentFormSchema = z
   .object({
     studentId: z.string().min(1, "Selecione um aluno."),
-    title: z.string().trim().min(2, "Informe o t?tulo do compromisso."),
+    title: z.string().trim().min(2, "Informe o título do compromisso."),
     startsAt: z.string().min(1, "Informe a data inicial."),
     endsAt: z.string().min(1, "Informe a data final."),
     notes: optionalText,

@@ -1,4 +1,4 @@
-import type { AppointmentStatus } from "@prisma/client";
+﻿import type { AppointmentStatus } from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
 
 type AppointmentStatusBadgeProps = {
@@ -10,7 +10,7 @@ const appointmentStatusMap: Record<
   { label: string; variant: "default" | "secondary" | "outline" }
 > = {
   SCHEDULED: { label: "Agendado", variant: "default" },
-  COMPLETED: { label: "Concluido", variant: "secondary" },
+  COMPLETED: { label: "Concluído", variant: "secondary" },
   CANCELED: { label: "Cancelado", variant: "outline" },
   MISSED: { label: "Faltou", variant: "secondary" }
 };

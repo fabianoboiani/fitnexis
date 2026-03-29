@@ -4,13 +4,10 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
 import { StudentNoticeCard } from "@/components/shared/student-notice-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { requireStudent } from "@/lib/auth-helpers";
+import { requireCurrentStudent } from "@/lib/student";
 import { cn } from "@/lib/utils";
-import {
-  StudentPortalService,
-  type StudentNoticeFilter,
-  type StudentNoticeItem
-} from "@/modules/student/services/student-portal.service";
+import type { StudentNoticeFilter, StudentNoticeItem } from "@/modules/student/notices/dto/student-notice.dto";
+import { StudentPortalService } from "@/modules/student/services/student-portal.service";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -61,13 +58,12 @@ export default async function StudentNoticesPage({
 }: {
   searchParams: SearchParams;
 }) {
-  await requireStudent();
-
+  const student = await requireCurrentStudent();
   const resolvedSearchParams = await searchParams;
-  const activeFilter = normalizeFilter(resolvedSearchParams.filter);
-  const notices = StudentPortalService.getNotices(activeFilter);
+  const activeFilter = normalizeFilter(resolvedSearchParams.filter) as StudentNoticeFilter;
+  const notices = await StudentPortalService.getNotices(student.id, activeFilter);
   const filterOptions = StudentPortalService.getNoticeFilterOptions();
-  const summary = getSummary(StudentPortalService.getNotices());
+  const summary = getSummary(await StudentPortalService.getNotices(student.id));
 
   return (
     <main className="min-w-0 space-y-8 px-6 py-8">
@@ -78,7 +74,10 @@ export default async function StudentNoticesPage({
 
       <section className="grid gap-4 md:grid-cols-3">
         {summary.map((item) => (
-          <Card key={item.id} className="rounded-[1.6rem] border-white/70 bg-[linear-gradient(160deg,rgba(255,255,255,0.96),rgba(248,250,252,0.88))] shadow-[0_22px_50px_-36px_rgba(15,23,42,0.42)]">
+          <Card
+            key={item.id}
+            className="rounded-[1.6rem] border-white/70 bg-[linear-gradient(160deg,rgba(255,255,255,0.96),rgba(248,250,252,0.88))] shadow-[0_22px_50px_-36px_rgba(15,23,42,0.42)]"
+          >
             <CardHeader className="space-y-2 pb-3">
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">{item.label}</p>
               <CardTitle className="text-3xl tracking-tight text-slate-950">{item.value}</CardTitle>
@@ -142,7 +141,7 @@ export default async function StudentNoticesPage({
           <div className="flex items-start gap-3">
             <Clock3 className="mt-0.5 size-5 text-blue-600" />
             <p>
-              Os avisos do aluno foram estruturados como base do MVP. Hoje eles usam dados mockados, mas já seguem um formato pronto para receber eventos reais de agenda, confirmações e comunicados do personal.
+              Seus avisos agora ficam registrados em uma central própria, sincronizada com agenda, pagamentos e evolução do seu acompanhamento.
             </p>
           </div>
         </CardContent>

@@ -1,4 +1,4 @@
-import { PageHeader } from "@/components/shared/page-header";
+﻿import { PageHeader } from "@/components/shared/page-header";
 import { AppointmentForm } from "@/components/shared/appointment-form";
 import { requireTenant } from "@/lib/tenant";
 import { updateAppointmentAction } from "@/modules/appointments/actions/appointment.action";
@@ -24,10 +24,10 @@ export default async function EditAppointmentPage({ params }: EditAppointmentPag
     <main className="space-y-8 px-6 py-8">
       <PageHeader
         title="Editar compromisso"
-        description="Atualiz? os dados do compromisso mantendo o isolamento por tenant."
+        description="Atualize os dados do compromisso mantendo o isolamento por tenant."
       />
       <AppointmentForm
-        title="Edicao de compromisso"
+        title="Edição de compromisso"
         description="Somente alunos do tenant autenticado podem ser vinculados a este compromisso."
         submitLabel="Salvar alterações"
         initialValues={AppointmentService.getFormValues(appointment)}

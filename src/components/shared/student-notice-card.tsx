@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Bell, Check, CheckCheck, ChevronDown, ChevronUp, Info, TriangleAlert } from "lucide-react";
@@ -9,7 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import type { StudentNoticeItem } from "@/modules/student/services/student-portal.service";
+import { markStudentNoticeAsReadAction } from "@/modules/student/notices/actions/student-notice.action";
+import type { StudentNoticeItem } from "@/modules/student/notices/dto/student-notice.dto";
 
 function getNoticeIcon(kind: StudentNoticeItem["kind"]) {
   if (kind === "success") return CheckCheck;
@@ -32,7 +33,18 @@ function getPriorityClasses(priority: StudentNoticeItem["priority"]) {
 export function StudentNoticeCard({ notice }: { notice: StudentNoticeItem }) {
   const [isRead, setIsRead] = useState(notice.isRead);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const Icon = getNoticeIcon(notice.kind);
+
+  function handleMarkAsRead() {
+    startTransition(async () => {
+      const result = await markStudentNoticeAsReadAction(notice.id);
+
+      if (result.success) {
+        setIsRead(true);
+      }
+    });
+  }
 
   return (
     <Card
@@ -103,14 +115,19 @@ export function StudentNoticeCard({ notice }: { notice: StudentNoticeItem }) {
             type="button"
             variant={isRead ? "outline" : "default"}
             className={cn(isRead && "border-slate-200 bg-white")}
-            onClick={() => setIsRead(true)}
-            disabled={isRead}
+            onClick={handleMarkAsRead}
+            disabled={isRead || isPending}
           >
             {isRead ? <CheckCheck className="mr-2 size-4" /> : <Check className="mr-2 size-4" />}
-            {isRead ? "Marcado como lido" : "Marcar como lido"}
+            {isRead ? "Marcado como lido" : isPending ? "Salvando..." : "Marcar como lido"}
           </Button>
 
-          <Button type="button" variant="outline" className="border-slate-200 bg-white" onClick={() => setDetailsOpen((value) => !value)}>
+          <Button
+            type="button"
+            variant="outline"
+            className="border-slate-200 bg-white"
+            onClick={() => setDetailsOpen((value) => !value)}
+          >
             {detailsOpen ? <ChevronUp className="mr-2 size-4" /> : <ChevronDown className="mr-2 size-4" />}
             {detailsOpen ? "Ocultar detalhes" : "Visualizar detalhes"}
           </Button>

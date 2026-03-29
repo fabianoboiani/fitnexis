@@ -1,4 +1,4 @@
-import type {
+﻿import type {
   ProgressRecordFormValuesDto,
   ProgressRecordListItemDto
 } from "@/modules/progress/dto/progress-record.dto";
@@ -33,7 +33,7 @@ export const ProgressService = {
     const student = await StudentService.getById(tenantId, parsed.studentId);
 
     if (!student) {
-      throw new Error("O aluno informado n?o pertence ao tenant atual.");
+      throw new Error("O aluno informado não pertence ao tenant atual.");
     }
 
     return ProgressRepository.create({

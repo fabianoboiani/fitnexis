@@ -1,4 +1,4 @@
-import { CalendarClock, CreditCard, DollarSign, Users } from "lucide-react";
+﻿import { CalendarClock, CreditCard, DollarSign, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DashboardStatCard } from "@/components/shared/dashboard-stat-card";
 import { PageHeader } from "@/components/shared/page-header";
@@ -22,7 +22,7 @@ export default async function DashboardPage() {
     <main className="space-y-8 px-6 py-8">
       <PageHeader
         title="Dashboard"
-        description={`Visão cons?lidada de ${tenant.businessName}.`}
+        description={`Visão consolidada de ${tenant.businessName}.`}
       />
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -61,12 +61,12 @@ export default async function DashboardPage() {
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-sm text-slate-500">
             <DollarSign className="size-4" />
-            <span>Recebido no mes</span>
+            <span>Recebido no mês</span>
           </div>
           <DashboardStatCard
-            title="Valor recebido no mes atual"
+            title="Valor recebido no mês atual"
             value={formatCurrency(data.receivedAmountThisMonth)}
-            description="Somatorio dos pagamentos marcados como pagos no mes atual."
+            description="Somatório dos pagamentos marcados como pagos no mês atual."
           />
         </div>
 
@@ -95,11 +95,9 @@ export default async function DashboardPage() {
           <CardContent>
             {data.upcomingAppointments.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-10 text-center">
-                <p className="text-sm font-medium text-slate-900">
-                  Nenhum atendimento agendado.
-                </p>
+                <p className="text-sm font-medium text-slate-900">Nenhum atendimento agendado.</p>
                 <p className="mt-2 text-sm text-slate-500">
-                  Quando houver novos compromissos para este tenant, eles aparecerao aqui.
+                  Quando houver novos compromissos para este tenant, eles aparecerão aqui.
                 </p>
               </div>
             ) : (
@@ -111,9 +109,7 @@ export default async function DashboardPage() {
                   >
                     <div className="space-y-1">
                       <p className="font-medium text-slate-950">{appointment.title}</p>
-                      <p className="text-sm text-slate-500">
-                        Aluno: {appointment.studentName}
-                      </p>
+                      <p className="text-sm text-slate-500">Aluno: {appointment.studentName}</p>
                     </div>
                     <div className="text-sm text-slate-600">{appointment.startsAtLabel}</div>
                   </div>
@@ -125,7 +121,7 @@ export default async function DashboardPage() {
 
         <Card className="border-white/70 bg-white/90 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-xl">Resumo r?pido</CardTitle>
+            <CardTitle className="text-xl">Resumo rápido</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-slate-600">
             <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
@@ -135,8 +131,7 @@ export default async function DashboardPage() {
             <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
               <p className="font-medium text-slate-900">Leitura segura por tenant</p>
               <p className="mt-1">
-                Todas as métricas dest? pagina foram consultadas com filtro explicito por
-                tenantId.
+                Todas as métricas desta página foram consultadas com filtro explícito por tenantId.
               </p>
             </div>
           </CardContent>
