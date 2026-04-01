@@ -1,11 +1,8 @@
 import Link from "next/link";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
 import { ProgressForm } from "@/components/shared/progress-form";
+import { ProgressRecordHistoryCard } from "@/components/shared/progress-record-history-card";
 import { requireTenant } from "@/lib/tenant";
 import { createProgressRecordAction } from "@/modules/progress/actions/progress.action";
 import { ProgressService } from "@/modules/progress/services/progress.service";
@@ -29,7 +26,6 @@ export default async function StudentProgressPage({
   const student = await StudentService.getByIdOrThrow(tenant.id, id);
   const records = await ProgressService.listByTenant(tenant.id, student.id);
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
-  const boundCreateAction = createProgressRecordAction;
 
   return (
     <main className="space-y-8 px-6 py-8">
@@ -57,46 +53,10 @@ export default async function StudentProgressPage({
           cancelHref={`/students/${student.id}`}
           initialValues={ProgressService.getFormValues(student.id)}
           studentOptions={[{ id: student.id, name: student.name }]}
-          onSubmitAction={boundCreateAction}
+          onSubmitAction={createProgressRecordAction}
         />
 
-        <Card className="border-white/70 bg-white/90 shadow-sm backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="text-xl">Histórico</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {records.length === 0 ? (
-              <EmptyState
-                title="Nenhuma evolução registrada"
-                description="Os registros deste aluno aparecerão aqui conforme forem cadastrados."
-              />
-            ) : (
-              <div className="space-y-4">
-                {records.map((record) => (
-                  <div
-                    key={record.id}
-                    className="rounded-2xl border border-slate-200 px-4 py-4"
-                  >
-                    <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                      <p className="font-medium text-slate-950">
-                        {format(record.recordedAt, "dd/MM/yyyy", { locale: ptBR })}
-                      </p>
-                      <div className="flex flex-wrap gap-4 text-sm text-slate-600">
-                        <span>Peso: {record.weight ? `${record.weight} kg` : "Não informado"}</span>
-                        <span>
-                          Gordura: {record.bodyFat ? `${record.bodyFat}%` : "Não informada"}
-                        </span>
-                      </div>
-                    </div>
-                    <p className="mt-3 text-sm text-slate-600">
-                      {record.notes ?? "Sem observações neste registro."}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <ProgressRecordHistoryCard records={records} />
       </div>
     </main>
   );

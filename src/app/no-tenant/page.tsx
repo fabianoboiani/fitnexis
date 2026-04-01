@@ -23,12 +23,12 @@ export default async function NoTenantPage() {
             {user && isAdmin(user.role)
               ? "Isso pode acontecer com usuários administrativos da plataforma quando o contexto atual não depende de tenant."
               : user && isStudent(user.role)
-                ? "Isso pode acontecer quando o acesso do aluno foi criado, mas ainda não foi vinculado corretamente a um cadastro de aluno do tenant."
+                ? "Isso pode acontecer quando o acesso do aluno foi criado, mas ainda não foi vinculado corretamente a um cadastro de aluno com acesso ativo."
                 : "Revise o vínculo da conta com o contexto operacional correto antes de continuar."}
           </p>
           <div className="flex flex-wrap gap-3">
             <Button asChild>
-              <Link href="/">Voltar para início</Link>
+              <Link href="/">Voltar para o início</Link>
             </Button>
             {user && isAdmin(user.role) ? (
               <Button asChild variant="outline">

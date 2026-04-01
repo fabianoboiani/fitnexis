@@ -1,4 +1,4 @@
-﻿"use server";
+"use server";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -16,8 +16,9 @@ type ProgressActionState = {
   fieldErrors?: Record<string, string[] | undefined>;
 };
 
-export async function createProgressRecordAction(
-  input: ProgressRecordFormInput
+async function handleCreateProgressRecord(
+  input: ProgressRecordFormInput,
+  successRedirectPath: (studentId: string) => string
 ): Promise<ProgressActionState> {
   const tenant = await requireTenant();
   const parsed = CreateProgressRecordSchema.safeParse(input);
@@ -41,10 +42,28 @@ export async function createProgressRecordAction(
   }
 
   revalidatePath("/progress");
+  revalidatePath("/progress/new");
   revalidatePath(`/students/${parsed.data.studentId}/progress`);
   revalidatePath("/student");
   revalidatePath("/student/progress");
   revalidatePath("/student/notices");
-  redirect(`/students/${parsed.data.studentId}/progress?success=created`);
+  redirect(successRedirectPath(parsed.data.studentId));
 }
 
+export async function createProgressRecordAction(
+  input: ProgressRecordFormInput
+): Promise<ProgressActionState> {
+  return handleCreateProgressRecord(
+    input,
+    (studentId) => `/students/${studentId}/progress?success=created`
+  );
+}
+
+export async function createProgressRecordFromOverviewAction(
+  input: ProgressRecordFormInput
+): Promise<ProgressActionState> {
+  return handleCreateProgressRecord(
+    input,
+    (studentId) => `/progress/new?studentId=${studentId}&success=created`
+  );
+}

@@ -72,11 +72,6 @@ export default auth((request) => {
     });
   }
 
-  if (user && pathname === "/no-tenant" && user.role === "STUDENT" && user.studentId) {
-    return applySecurityHeaders(NextResponse.redirect(new URL("/student", request.nextUrl.origin)), {
-      noStore: true
-    });
-  }
 
   if (user && isAdminRoute(pathname) && user.role !== "ADMIN") {
     return applySecurityHeaders(

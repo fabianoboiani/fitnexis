@@ -1,4 +1,4 @@
-﻿import { redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -203,12 +203,6 @@ const faqs = [
 ];
 
 export default async function HomePage() {
-  const user = await getCurrentUser();
-
-  if (user) {
-    redirect(getDefaultAuthenticatedRoute(user));
-  }
-
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(14,165,233,0.12),transparent_28%),linear-gradient(180deg,#f8fbff_0%,#eef4ff_38%,#f8fafc_100%)]">
       <LandingNavbar />

@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -32,24 +32,31 @@ export default async function ProgressPage({ searchParams }: ProgressPageProps) 
 
       <Card className="border-white/70 bg-white/90 shadow-sm">
         <CardHeader className="gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <CardTitle className="text-xl">Registros recentes</CardTitle>
-          <form className="flex w-full max-w-sm gap-2" method="get">
-            <select
-              name="studentId"
-              defaultValue={params?.studentId ?? ""}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            >
-              <option value="">Todos os alunos</option>
-              {students.map((student) => (
-                <option key={student.id} value={student.id}>
-                  {student.name}
-                </option>
-              ))}
-            </select>
-            <Button type="submit" variant="outline">
-              Filtrar
-            </Button>
-          </form>
+          <div className="flex flex-1 flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <CardTitle className="text-xl">Registros recentes</CardTitle>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <form className="flex w-full max-w-sm gap-2" method="get">
+                <select
+                  name="studentId"
+                  defaultValue={params?.studentId ?? ""}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                >
+                  <option value="">Todos os alunos</option>
+                  {students.map((student) => (
+                    <option key={student.id} value={student.id}>
+                      {student.name}
+                    </option>
+                  ))}
+                </select>
+                <Button type="submit" variant="outline">
+                  Filtrar
+                </Button>
+              </form>
+              <Button asChild>
+                <Link href="/progress/new">Nova evolução</Link>
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {records.length === 0 ? (

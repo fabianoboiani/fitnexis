@@ -1,4 +1,4 @@
-﻿export const BRAND_NAME = "Fitnexis";
+export const BRAND_NAME = "Fitnexis";
 
 export const BRAND_COPY = {
   shortProposition: "Gestão profissional para personal trainers.",
@@ -14,7 +14,7 @@ export const BRAND_COPY = {
     "Fitnexis centraliza a operação do personal trainer em um único sistema, reunindo alunos, agenda, pagamentos e acompanhamento da rotina. O resultado é um atendimento mais organizado, uma operação mais profissional e uma base mais sólida para crescer.",
   hero: {
     badge: "Plataforma profissional para personal trainers",
-    title: "Gestão profissional para personal trainers que querem operar melhor.",
+    title: "Gestão profissional para personal trainers.",
     description:
       "Organize alunos, agenda, pagamentos e rotina de atendimento em uma plataforma criada para dar mais controle, mais clareza e uma operação mais consistente no dia a dia."
   },

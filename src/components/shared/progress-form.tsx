@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ type ProgressFormProps = {
   cancelHref: string;
   initialValues: ProgressRecordFormInput;
   studentOptions: Array<{ id: string; name: string }>;
+  studentSelectionHrefBase?: string;
   onSubmitAction: (values: ProgressRecordFormInput) => Promise<{
     success: boolean;
     message?: string;
@@ -35,10 +37,12 @@ export function ProgressForm({
   cancelHref,
   initialValues,
   studentOptions,
+  studentSelectionHrefBase,
   onSubmitAction
 }: ProgressFormProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isPending, startFormTransition] = useTransition();
+  const router = useRouter();
 
   const form = useForm<ProgressRecordFormInput>({
     resolver: zodResolver(ProgressRecordFormSchema),
@@ -83,7 +87,20 @@ export function ProgressForm({
             <select
               id="studentId"
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              {...form.register("studentId")}
+              {...form.register("studentId", {
+                onChange: (event) => {
+                  if (!studentSelectionHrefBase) {
+                    return;
+                  }
+
+                  const nextStudentId = event.target.value;
+                  const nextHref = nextStudentId
+                    ? `${studentSelectionHrefBase}?studentId=${nextStudentId}`
+                    : studentSelectionHrefBase;
+
+                  router.replace(nextHref);
+                }
+              })}
             >
               <option value="">Selecione um aluno</option>
               {studentOptions.map((student) => (
