@@ -14,8 +14,21 @@ type StudentProgressPageProps = {
   }>;
   searchParams?: Promise<{
     success?: string;
+    returnTo?: string;
   }>;
 };
+
+function resolveReturnTo(returnTo?: string) {
+  if (!returnTo || !returnTo.startsWith("/")) {
+    return null;
+  }
+
+  if (returnTo.startsWith("//")) {
+    return null;
+  }
+
+  return returnTo;
+}
 
 export default async function StudentProgressPage({
   params,
@@ -26,6 +39,8 @@ export default async function StudentProgressPage({
   const student = await StudentService.getByIdOrThrow(tenant.id, id);
   const records = await ProgressService.listByTenant(tenant.id, student.id);
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const contextualReturnTo = resolveReturnTo(resolvedSearchParams?.returnTo);
+  const backHref = contextualReturnTo ?? `/students/${student.id}`;
 
   return (
     <main className="space-y-8 px-6 py-8">
@@ -35,7 +50,7 @@ export default async function StudentProgressPage({
           description="Histórico de evolução física vinculado ao aluno e ao tenant atual."
         />
         <Button asChild variant="outline">
-          <Link href={`/students/${student.id}`}>Voltar para aluno</Link>
+          <Link href={backHref}>{contextualReturnTo ? "Voltar para evolução" : "Voltar para aluno"}</Link>
         </Button>
       </div>
 
@@ -50,7 +65,7 @@ export default async function StudentProgressPage({
           title="Novo registro"
           description="Adicione um novo registro de evolução para este aluno."
           submitLabel="Salvar evolução"
-          cancelHref={`/students/${student.id}`}
+          cancelHref={backHref}
           initialValues={ProgressService.getFormValues(student.id)}
           studentOptions={[{ id: student.id, name: student.name }]}
           onSubmitAction={createProgressRecordAction}
