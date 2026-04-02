@@ -31,17 +31,17 @@ export default async function NewProgressPage({ searchParams }: NewProgressPageP
     <main className="space-y-8 px-6 py-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <PageHeader
-          title="Nova evoluÃ§Ã£o"
-          description="Selecione um aluno para registrar uma nova evoluÃ§Ã£o e acompanhar o histÃ³rico ao lado."
+          title="Nova evolução"
+          description="Selecione um aluno para registrar uma nova evolução e acompanhar o histórico ao lado."
         />
         <Button asChild variant="outline">
-          <Link href="/progress">Voltar para evoluÃ§Ã£o</Link>
+          <Link href="/progress">Voltar para evolução</Link>
         </Button>
       </div>
 
       {params?.success === "created" ? (
         <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-          Registro de evoluÃ§Ã£o criado com sucesso.
+          Registro de evolução criado com sucesso.
         </div>
       ) : null}
 
@@ -49,7 +49,7 @@ export default async function NewProgressPage({ searchParams }: NewProgressPageP
         <ProgressForm
           title="Novo registro"
           description="Escolha o aluno e preencha os dados do novo registro."
-          submitLabel="Salvar evoluÃ§Ã£o"
+          submitLabel="Salvar evolução"
           cancelHref="/progress"
           initialValues={ProgressService.getFormValues(selectedStudent?.id)}
           studentOptions={students.map((student) => ({
@@ -61,14 +61,14 @@ export default async function NewProgressPage({ searchParams }: NewProgressPageP
         />
 
         <ProgressRecordHistoryCard
-          title={selectedStudent ? `HistÃ³rico de ${selectedStudent.name}` : "HistÃ³rico do aluno"}
+          title={selectedStudent ? `Histórico de ${selectedStudent.name}` : "Histórico do aluno"}
           emptyTitle={
-            selectedStudent ? "Nenhuma evoluÃ§Ã£o registrada" : "Selecione um aluno para visualizar"
+            selectedStudent ? "Nenhuma evolução registrada" : "Selecione um aluno para visualizar"
           }
           emptyDescription={
             selectedStudent
-              ? "Os registros deste aluno aparecerÃ£o aqui conforme forem cadastrados."
-              : "Ao escolher um aluno no formulÃ¡rio, o histÃ³rico recente serÃ¡ carregado nesta Ã¡rea."
+              ? "Os registros deste aluno aparecerão aqui conforme forem cadastrados."
+              : "Ao escolher um aluno no formulário, o histórico recente será carregado nesta área."
           }
           records={records}
         />

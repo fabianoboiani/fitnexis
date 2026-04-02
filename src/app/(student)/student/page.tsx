@@ -216,7 +216,7 @@ export default async function StudentDashboardPage() {
               <p className="text-sm font-medium text-slate-500">Plano atual</p>
               <p className="mt-2 text-lg font-semibold text-slate-950">{data.activePlan}</p>
               <p className="mt-2 text-sm text-slate-600">
-                Estrutura ativa do seu acompanhamento com foco em frequência, progresso e constância.
+                Estrutura ativa do seu acompanhamento com foco em frequência, progresso e consistência.
               </p>
             </div>
             <div className="rounded-[1.35rem] border border-slate-200/80 bg-slate-50/70 px-4 py-4">

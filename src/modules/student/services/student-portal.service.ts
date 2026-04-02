@@ -153,7 +153,7 @@ async function getStudentContext(studentId: string) {
   });
 
   if (!student) {
-    throw new StudentProfileError("Aluno nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o encontrado.");
+    throw new StudentProfileError("Aluno não encontrado.");
   }
 
   return student;
@@ -164,7 +164,7 @@ function buildLocationLabel(context: StudentContext) {
 }
 
 function buildFormatLabel() {
-  return "SessÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o com acompanhamento do personal";
+  return "Sessão com acompanhamento do personal";
 }
 
 function mapStudentVisibleStatus(
@@ -200,7 +200,7 @@ function buildAppointmentHistory(appointment: StudentAppointmentRecord): Student
       id: `${appointment.id}-created`,
       status: "Criado",
       occurredAt: appointment.createdAt,
-      description: "SessÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o adicionada ao seu acompanhamento pelo personal."
+      description: "Sessão adicionada ao seu acompanhamento pelo personal."
     }
   ];
 
@@ -214,10 +214,10 @@ function buildAppointmentHistory(appointment: StudentAppointmentRecord): Student
       description:
         appointment.studentResponseNote ??
         (responseStatus === "Confirmado"
-          ? "VocÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âª confirmou presenÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§a nesta sessÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o."
+          ? "Você confirmou presença nesta sessão."
           : responseStatus === "Reagendamento solicitado"
-            ? "VocÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âª solicitou reagendamento e o personal precisa analisar esse pedido."
-            : "VocÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âª registrou uma solicitaÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o de cancelamento para esta sessÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o.")
+            ? "Você solicitou reagendamento e o personal precisa analisar esse pedido."
+            : "Você registrou uma solicitação de cancelamento para esta sessão.")
     });
   }
 
@@ -227,10 +227,10 @@ function buildAppointmentHistory(appointment: StudentAppointmentRecord): Student
     occurredAt: appointment.updatedAt,
     description:
       appointment.status === AppointmentStatus.COMPLETED
-        ? "SessÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o concluÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­da e registrada no histÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³rico do seu acompanhamento."
+        ? "Sessão concluída e registrada no histórico do seu acompanhamento."
         : appointment.status === AppointmentStatus.CANCELED || appointment.status === AppointmentStatus.MISSED
-          ? "SessÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o encerrada ou cancelada no planejamento atual."
-          : "SessÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o mantida na agenda do seu acompanhamento."
+          ? "Sessão encerrada ou cancelada no planejamento atual."
+          : "Sessão mantida na agenda do seu acompanhamento."
   });
 
   return items.sort((a, b) => a.occurredAt.getTime() - b.occurredAt.getTime());
@@ -358,18 +358,18 @@ export const StudentPortalService = {
 
     return {
       greetingMessage:
-        "Seu painel reflete os dados reais lanÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ados pelo seu personal, com agenda, evoluÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o e financeiro organizados no mesmo ambiente.",
+        "Seu painel reflete os dados reais lançados pelo seu personal, com agenda, evolução e financeiro organizados no mesmo ambiente.",
       nextSession,
       weeklySummary: [
         {
           id: "scheduled",
-          label: "SessÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµes agendadas",
+          label: "Sessões agendadas",
           value: String(sessionsThisWeek),
           description: "Compromissos previstos para a sua semana atual."
         },
         {
           id: "completed",
-          label: "SessÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµes concluÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­das",
+          label: "Sessões concluídas",
           value: String(completedThisWeek),
           description: "Treinos finalizados recentemente no seu acompanhamento."
         },
@@ -383,26 +383,26 @@ export const StudentPortalService = {
           id: "alerts",
           label: "Avisos importantes",
           value: String(notices.filter((notice) => notice.priority !== "low").length),
-          description: "AtualizaÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµes que merecem sua atenÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o hoje."
+          description: "Atualizações que merecem sua atenção hoje."
         }
       ] satisfies StudentDashboardStat[],
       quickActions: [
         {
           id: "full-agenda",
           label: "Ver agenda completa",
-          description: "Acesse seus prÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³ximos horÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡rios e o histÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³rico de sessÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµes.",
+          description: "Acesse seus próximos horários e o histórico de sessões.",
           href: "/student/agenda"
         },
         {
           id: "progress",
-          label: "Acompanhar evoluÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o",
+          label: "Acompanhar evolução",
           description: "Consulte registros recentes e indicadores do seu progresso.",
           href: "/student/progress"
         },
         {
           id: "notices",
           label: "Ver avisos",
-          description: "Centralize lembretes, mudanÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§as e atualizaÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµes do acompanhamento.",
+          description: "Centralize lembretes, mudanças e atualizações do acompanhamento.",
           href: "/student/notices"
         },
         {
@@ -416,25 +416,25 @@ export const StudentPortalService = {
       progressSummary: [
         {
           id: "month-sessions",
-          label: "SessÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµes no mÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âªs",
+          label: "Sessões no mês",
           value: String(sessionsThisMonth),
-          description: "Atendimentos concluÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­dos no ciclo atual."
+          description: "Atendimentos concluídos no ciclo atual."
         },
         {
           id: "attendance",
-          label: "FrequÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âªncia recente",
+          label: "Frequência recente",
           value: `${frequencyPerWeek}x por semana`,
-          description: "MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©dia das ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âºltimas quatro semanas com base nas sessÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµes concluÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­das."
+          description: "Média das últimas quatro semanas com base nas sessões concluídas."
         },
         {
           id: "evolution",
-          label: "ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ltimo registro",
+          label: "Último registro",
           value: latestProgress
             ? format(latestProgress.recordedAt, "dd/MM", { locale: ptBR })
             : "Sem registros",
           description: latestProgress
-            ? "Seu progresso jÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ tem um histÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³rico real no sistema."
-            : "Ainda nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o hÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ registros de evoluÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o lanÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ados."
+            ? "Seu progresso já tem um histórico real no sistema."
+            : "Ainda não há registros de evolução lançados."
         }
       ] satisfies StudentDashboardStat[],
       activePlan: context.tenant.saasSubscription?.planName ?? "Plano ativo",
@@ -551,14 +551,14 @@ export const StudentPortalService = {
   getHistoryFilterOptions() {
     return {
       period: [
-        { value: "all", label: "Todo o histÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³rico" },
-        { value: "30d", label: "ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ltimos 30 dias" },
-        { value: "90d", label: "ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ltimos 90 dias" }
+        { value: "all", label: "Todo o histórico" },
+        { value: "30d", label: "Últimos 30 dias" },
+        { value: "90d", label: "Últimos 90 dias" }
       ] as const,
       attendance: [
-        { value: "all", label: "Todas as presenÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§as" },
-        { value: "present", label: "SessÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµes com presenÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§a" },
-        { value: "absent", label: "AusÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âªncias registradas" }
+        { value: "all", label: "Todas as presenças" },
+        { value: "present", label: "Sessões com presença" },
+        { value: "absent", label: "Ausências registradas" }
       ] as const
     };
   },
@@ -624,8 +624,8 @@ export const StudentPortalService = {
     const latestRecord = records[0] ?? null;
     const previousRecord = records[1] ?? null;
     const notes = latestRecord
-      ? [latestRecord.notes ?? "HÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ um registro recente de evoluÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o disponÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­vel no seu acompanhamento."]
-      : ["Seu personal ainda nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o lanÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ou registros de evoluÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o neste perfil."];
+      ? [latestRecord.notes ?? "Há um registro recente de evolução disponível no seu acompanhamento."]
+      : ["Seu personal ainda não lançou registros de evolução neste perfil."];
 
     if (previousRecord && latestRecord?.weight && previousRecord.weight) {
       notes.push(
@@ -637,32 +637,32 @@ export const StudentPortalService = {
       metrics: [
         {
           id: "sessions-month",
-          label: "SessÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµes realizadas no mÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âªs",
+          label: "Sessões realizadas no mês",
           value: String(sessionsThisMonth),
-          description: "Treinos concluÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­dos no mÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âªs atual com base na agenda real."
+          description: "Treinos concluídos no mês atual com base na agenda real."
         },
         {
           id: "weekly-frequency",
-          label: "FrequÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âªncia semanal",
+          label: "Frequência semanal",
           value: `${(currentWindow / 4).toFixed(1).replace(".", ",")}x por semana`,
-          description: "MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©dia das ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âºltimas quatro semanas com base nas sessÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµes concluÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­das."
+          description: "Média das últimas quatro semanas com base nas sessões concluídas."
         },
         {
           id: "comparison",
-          label: "Comparativo simples do perÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­odo",
+          label: "Comparativo simples do período",
           value:
             comparison === 0
-              ? "EstÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡vel"
-              : `${comparison > 0 ? "+" : ""}${comparison} sessÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o${Math.abs(comparison) === 1 ? "" : "ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµes"}`,
-          description: "ComparaÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o entre os ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âºltimos 30 dias e o perÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­odo imediatamente anterior."
+              ? "Estável"
+              : `${comparison > 0 ? "+" : ""}${comparison} ${Math.abs(comparison) === 1 ? "sessão" : "sessões"}`,
+          description: "Comparação entre os últimos 30 dias e o período imediatamente anterior."
         }
       ] satisfies StudentProgressMetric[],
       trend,
       highlights: [
         `Registros reais do acompanhamento de ${context.tenant.personalName}.`,
         latestRecord
-          ? `ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ltima atualizaÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o registrada em ${format(latestRecord.recordedAt, "dd/MM/yyyy", { locale: ptBR })}.`
-          : "Ainda nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o existem registros de evoluÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o lanÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ados."
+          ? `Última atualização registrada em ${format(latestRecord.recordedAt, "dd/MM/yyyy", { locale: ptBR })}.`
+          : "Ainda não existem registros de evolução lançados."
       ],
       notes,
       records: records.map((record) => ({
@@ -670,21 +670,21 @@ export const StudentPortalService = {
         recordedAt: record.recordedAt,
         title:
           record.weight && record.bodyFat
-            ? "Peso e composiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o"
+            ? "Peso e composição"
             : record.weight
               ? "Peso corporal"
               : record.bodyFat
                 ? "Percentual de gordura"
-                : "Registro de evoluÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o",
+                : "Registro de evolução",
         value:
           record.weight && record.bodyFat
-            ? `${Number(record.weight).toFixed(1).replace(".", ",")} kg ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ ${Number(record.bodyFat).toFixed(1).replace(".", ",")}%`
+            ? `${Number(record.weight).toFixed(1).replace(".", ",")} kg | ${Number(record.bodyFat).toFixed(1).replace(".", ",")}%`
             : record.weight
               ? `${Number(record.weight).toFixed(1).replace(".", ",")} kg`
               : record.bodyFat
                 ? `${Number(record.bodyFat).toFixed(1).replace(".", ",")}%`
                 : format(record.recordedAt, "dd/MM/yyyy", { locale: ptBR }),
-        note: record.notes ?? "Registro salvo no histÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³rico do acompanhamento."
+        note: record.notes ?? "Registro salvo no histórico do acompanhamento."
       }))
     };
   },
@@ -696,7 +696,7 @@ export const StudentPortalService = {
   getNoticeFilterOptions() {
     return [
       { value: "all", label: "Todos os avisos" },
-      { value: "unread", label: "NÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o lidos" },
+      { value: "unread", label: "Não lidos" },
       { value: "high-priority", label: "Prioridade alta" }
     ] as const;
   },
@@ -732,7 +732,7 @@ export const StudentPortalService = {
         plan: context.tenant.saasSubscription?.planName ?? "Plano ativo",
         nextCheckIn: nextAppointment
           ? format(nextAppointment.startsAt, "dd/MM/yyyy", { locale: ptBR })
-          : "Sem sessÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o futura"
+          : "Sem sessão futura"
       }
     };
   },
@@ -769,7 +769,7 @@ export const StudentPortalService = {
     const context = await getStudentContext(studentId);
 
     if (!context.user) {
-      throw new StudentProfileError("Este aluno nÃƒÆ’Ã‚Â£o possui um usuÃƒÆ’Ã‚Â¡rio de acesso vinculado.");
+      throw new StudentProfileError("Este aluno não possui um usuário de acesso vinculado.");
     }
 
     const userCredentials = await prisma.user.findUnique({
@@ -785,7 +785,7 @@ export const StudentPortalService = {
 
     const passwordMatches = await PasswordService.compare(parsed.currentPassword, userCredentials.passwordHash);
     if (!passwordMatches) {
-      throw new StudentProfileError("A senha atual informada estÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ incorreta.");
+      throw new StudentProfileError("A senha atual informada está incorreta.");
     }
 
     const newPasswordHash = await PasswordService.hash(parsed.newPassword);

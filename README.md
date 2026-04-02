@@ -179,9 +179,18 @@ Senha padrão de todas as contas seed:
 - pagamentos reais vinculados aos alunos
 - agendamentos reais vinculados aos alunos
 - registros de evolução reais vinculados aos alunos
-- 1 assinatura SaaS do tenant`r`n- avisos persistidos do aluno, incluindo eventos automáticos e comunicados manuais de exemplo
+- 1 assinatura SaaS do tenant
+- avisos persistidos do aluno, incluindo eventos automáticos e comunicados manuais de exemplo
 
-## Fluxos disponíveis`r`n`r`n### Testar avisos do aluno`r`n`r`n- No painel do personal, abra `Alunos` e entre no detalhe de um aluno com acesso ao portal.`r`n- Use o bloco `Comunicado manual` para enviar um aviso direto para a central do aluno.`r`n- Alterações em agenda, pagamentos e evolução também atualizam avisos reais no portal do aluno.`r`n`r`n## Fluxos disponíveis
+## Fluxos disponíveis
+
+### Testar avisos do aluno
+
+- No painel do personal, abra `Alunos` e entre no detalhe de um aluno com acesso ao portal.
+- Use o bloco `Comunicado manual` para enviar um aviso direto para a central do aluno.
+- Alterações em agenda, pagamentos e evolução também atualizam avisos reais no portal do aluno.
+
+## Fluxos disponíveis
 
 - `/login`
   Login por credenciais com Auth.js

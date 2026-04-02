@@ -26,8 +26,8 @@ export default async function ProgressPage({ searchParams }: ProgressPageProps) 
   return (
     <main className="space-y-8 px-6 py-8">
       <PageHeader
-        title="EvoluÃ§Ã£o FÃ­sica"
-        description="Acompanhe os registros recentes de evoluÃ§Ã£o por aluno."
+        title="Evolução Física"
+        description="Acompanhe os registros recentes de evolução por aluno."
       />
 
       <Card className="border-white/70 bg-white/90 shadow-sm">
@@ -53,7 +53,7 @@ export default async function ProgressPage({ searchParams }: ProgressPageProps) 
                 </Button>
               </form>
               <Button asChild>
-                <Link href="/progress/new">Nova evoluÃ§Ã£o</Link>
+                <Link href="/progress/new">Nova evolução</Link>
               </Button>
             </div>
           </div>
@@ -62,7 +62,7 @@ export default async function ProgressPage({ searchParams }: ProgressPageProps) 
           {records.length === 0 ? (
             <EmptyState
               title="Nenhum registro encontrado"
-              description="Cadastre evoluÃ§Ãµes nos alunos para visualizar o histÃ³rico aqui."
+              description="Cadastre evoluções nos alunos para visualizar o histórico aqui."
             />
           ) : (
             <div className="space-y-3">
@@ -78,8 +78,8 @@ export default async function ProgressPage({ searchParams }: ProgressPageProps) 
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-4 text-sm text-slate-600">
-                    <span>Peso: {record.weight ? `${record.weight} kg` : "NÃ£o informado"}</span>
-                    <span>Gordura: {record.bodyFat ? `${record.bodyFat}%` : "NÃ£o informada"}</span>
+                    <span>Peso: {record.weight ? `${record.weight} kg` : "Não informado"}</span>
+                    <span>Gordura: {record.bodyFat ? `${record.bodyFat}%` : "Não informada"}</span>
                   </div>
                   <Button asChild size="sm" variant="outline">
                     <Link href={`/students/${record.studentId}/progress?returnTo=/progress`}>Ver aluno</Link>

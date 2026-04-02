@@ -12,7 +12,7 @@ export default function NewStudentPage() {
       />
       <StudentForm
         title="Cadastro de aluno"
-        description="Preenchá os dados principais do aluno. Os campos de contato ? observações são opcionais."
+        description="Preencha os dados principais do aluno. Os campos de contato e observações são opcionais."
         submitLabel="Cadastrar aluno"
         initialValues={StudentService.getFormValues()}
         onSubmitAction={createStudentAction}
