@@ -18,7 +18,7 @@ Plataforma profissional para personal trainers gerenciarem alunos, agenda, pagam
 - date-fns
 - bcrypt
 
-## Arquitetura
+## Arquitetura do Projeto
 
 O projeto segue uma arquitetura monolítica modular:
 
